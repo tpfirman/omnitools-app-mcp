@@ -62,7 +62,7 @@ MAX_FILE_SIZE=52428800  # 50 MB
 SEARCH_RESULT_LIMIT=10
 
 # Security: whitelist allowed directories
-ALLOWED_DIRECTORIES=/tmp,/home/user/workspace
+ALLOWED_DIRECTORIES=/tmp,workspace/
 
 # Logging
 LOG_LEVEL=info
@@ -78,6 +78,41 @@ npm start
 # Development mode (with auto-reload)
 npm run dev
 ```
+
+### 4. Add MCP Server to VS Code (User Scope)
+
+Use user-level MCP settings so no repository artifacts are created.
+
+1. Open your VS Code **User** settings JSON file:
+  - Linux: `~/.config/Code/User/mcp.json`
+  - macOS: `~/Library/Application Support/Code/User/mcp.json`
+  - Windows: `%APPDATA%\\Code\\User\\mcp.json`
+2. Add this server configuration under `mcpServers`:
+
+```json
+{
+  "mcpServers": {
+    "omnitools": {
+      "command": "node",
+      "args": ["/absolute/path/to/omnitools-app-mcp/dist/index.js"],
+      "env": {
+        "ALLOWED_DIRECTORIES": "/tmp,/home/user/workspace",
+        "TOOL_TIMEOUT": "60",
+        "MAX_FILE_SIZE": "52428800",
+        "SEARCH_RESULT_LIMIT": "10",
+        "LOG_LEVEL": "info"
+      }
+    }
+  }
+}
+```
+
+3. Save `settings.json` and reload VS Code.
+
+Quick verification:
+- Run an MCP tool listing command from your MCP client in VS Code
+- Confirm `omni_search` and `omni_run` are available
+- Check `logs/mcp-server.log` if startup fails
 
 ## Architecture
 
