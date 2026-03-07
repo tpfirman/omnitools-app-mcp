@@ -12,5 +12,18 @@ This improves release quality and enforces the project workflow by ensuring chan
 - Require passing checks in branch protection for `main`
 - Enforce PR-based merges and disable direct pushes to `main`
 
+## Implemented
+- Added workflow: `.github/workflows/ci.yml`
+- Triggers on pull requests to `main` and pushes to `dev`/`feature/**`
+- Runs in order: lint, test, build on Node 20
+- Submodules are checked out recursively for future tool integration work
+
+## Branch Protection Setup (GitHub UI)
+- Branch: `main`
+- Require a pull request before merging
+- Require status checks to pass before merging
+- Required check: `Lint, Test, Build (Node 20)`
+- Optional hardening: require linear history, dismiss stale approvals, restrict who can push
+
 ## Status
-Idea
+Complete

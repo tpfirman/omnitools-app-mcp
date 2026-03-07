@@ -160,6 +160,13 @@ npm run submodules:update
 npm run submodules:update:remote
 ```
 
+### CI and Branch Protection
+
+- GitHub Actions workflow: `.github/workflows/ci.yml`
+- CI runs on PRs to `main` and pushes to `dev`/`feature/**`
+- Required status check to protect `main`: `Lint, Test, Build (Node 20)`
+- Configure branch protection in GitHub: Settings -> Branches -> Add rule
+
 ## Git Workflow
 
 This project follows a structured Git workflow with conventional commits:
