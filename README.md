@@ -289,10 +289,19 @@ Releases are automated via GitHub Actions:
 
 1. **Development:** Feature branches → `dev` via PR
 2. **Release preparation:** `dev` → `main` via PR
-3. **Create release:** Tag `main` with version (e.g., `v1.0.0`)
-4. **Automation:** GitHub Actions builds, tests, and publishes release
+3. **Auto release on merge:** Merging a PR into `main` creates a GitHub Release automatically
+4. **Optional semantic release:** Push a version tag (e.g., `v1.0.0`) for a semver-named release
 
-### Creating a Release
+### Creating a Release Automatically
+
+No manual step is required beyond merging a PR into `main`.
+
+When a PR into `main` is merged, `.github/workflows/release.yml` will:
+- Build and test
+- Package artifacts
+- Create a GitHub Release for the merge commit
+
+### Creating a Semantic Version Release (Optional)
 
 ```bash
 # After merging dev into main
@@ -311,7 +320,7 @@ The release workflow (`.github/workflows/release.yml`) automatically:
 - ✅ Builds production bundle
 - ✅ Creates GitHub Release with notes
 - ✅ Attaches distribution artifacts (.tar.gz and .zip)
-- ✅ Updates `latest` tag
+- ✅ Updates `latest` tag (semantic tags only)
 
 ## License
 
