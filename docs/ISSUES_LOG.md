@@ -97,3 +97,25 @@ Replaced inline `require` with top-level ESM import: `import { existsSync } from
 Use top-level ESM imports consistently in TypeScript modules to avoid lint failures and keep module style uniform.
 
 ---
+
+### [ISSUE-004] Build failure after adding omni-tools submodule
+**Date:** 2026-03-07
+**Phase:** Phase 1 (Base Server)
+**Component:** `tsconfig.json`
+**Status:** Resolved
+
+**Problem:**
+TypeScript attempted to compile files inside `src/lib/omni-tools`, causing hundreds of JSX/module resolution errors unrelated to this MCP server.
+
+**Context:**
+- Triggered after adding git submodule at `src/lib/omni-tools`
+- Build command: `npm run build`
+- Errors included: `TS17004 Cannot use JSX unless the '--jsx' flag is provided` and many missing module errors from the submodule frontend code
+
+**Solution:**
+Updated `tsconfig.json` to exclude `src/lib/omni-tools` from compilation scope.
+
+**Prevention:**
+When vendoring/submoduling external code under `src/`, explicitly exclude it from local compiler/linter scopes unless intentionally building that external project.
+
+---
