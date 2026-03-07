@@ -5,6 +5,8 @@ A Model Context Protocol (MCP) server that provides AI agents access to self-hos
 ## Features
 
 - **Dynamic Tool Discovery**: Search-based tool discovery instead of loading 100+ schemas
+- **Dispatcher Runtime**: `omni_search` + `omni_run` for low-token tool invocation
+- **Core Tool Set (14 tools)**: Text, data, file, media, and PDF document operations
 - **Token Optimization**: Specialized catalog resources keep prompt windows lean
 - **Multiple Platform Support**: Compatible with Claude Desktop, GitHub Copilot, Google Gemini, LM Studio, Relevance AI, and N8N
 - **Security First**: Whitelist-based file access and path sanitization
@@ -91,6 +93,7 @@ Instead of exposing 100+ individual tool schemas, we use:
 
 - **`omni_search`**: Natural language search for capabilities
 - **`omni_run`**: Single execution endpoint with tool name + parameters
+- **`omnitools://catalog`**: Resource containing available tools and schemas
 
 This keeps the LLM context lean while providing full functionality.
 
@@ -166,19 +169,33 @@ This project follows a structured Git workflow with conventional commits:
 
 See [`.instructions.md`](.instructions.md) for complete guidelines.
 
-## Phase 1 Status ✓
+## Implementation Status
 
-Phase 1 (Base Server) is complete:
+### Completed
 
-- ✅ MCP SDK integration
-- ✅ Basic server skeleton with STDIO transport
-- ✅ Configuration management with Zod validation
-- ✅ Startup validation (Node version, FFmpeg)
-- ✅ Logging system
-- ✅ Basic connectivity test (ping tool)
-- ✅ Setup automation script
+- ✅ **Phase 1: Base Server**
+  - MCP SDK integration with STDIO transport
+  - Configuration management with Zod validation
+  - Startup validation (Node version, FFmpeg)
+  - Logging system and setup automation script
 
-**Next**: Phase 2 will add 10-15 core tools (text, document, utilities).
+- ✅ **Phase 2: Core Porting**
+  - 14 core tools implemented across text, data, file, media, and document categories
+  - Includes CSV-to-JSON, JSON utilities, hashing, file IO, and PDF operations
+
+- ✅ **Phase 3: Media Integration**
+  - FFmpeg/ffprobe wrappers for media metadata and audio extraction
+
+- ✅ **Phase 4: Dynamic Dispatcher**
+  - `omni_search` tool with ranked keyword matching
+  - `omni_run` tool with schema-validated execution
+  - `omnitools://catalog` MCP resource for tool discovery
+
+### Remaining
+
+- ⏳ **Phase 5: Client Validation**
+  - End-to-end validation with Claude Desktop, LM Studio, and other MCP clients
+  - Broader regression coverage for external integrations
 
 ## Configuration Reference
 
