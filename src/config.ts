@@ -44,7 +44,15 @@ function loadEnvVars(): Record<string, string> {
   }
   
   // Override with actual environment variables
-  return { ...env, ...process.env };
+  // Filter out undefined values from process.env
+  const processEnv = Object.entries(process.env).reduce((acc, [key, value]) => {
+    if (value !== undefined) {
+      acc[key] = value;
+    }
+    return acc;
+  }, {} as Record<string, string>);
+  
+  return { ...env, ...processEnv };
 }
 
 /**
