@@ -8,7 +8,7 @@ This improves release quality and enforces the project workflow by ensuring chan
 
 ## Initial Thoughts
 - Add a workflow that runs on PRs targeting `main` and on pushes to `dev`
-- Include `npm ci`, `npm run build`, `npm test`, and optionally `npm run lint`
+- Include `npm ci`, `npm run build`, `npm test` and `npm run lint`
 - Require passing checks in branch protection for `main`
 - Enforce PR-based merges and disable direct pushes to `main`
 
