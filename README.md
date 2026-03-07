@@ -22,8 +22,11 @@ A Model Context Protocol (MCP) server that provides AI agents access to self-hos
 
 ```bash
 # Clone the repository
-git clone <repository-url>
+git clone --recurse-submodules <repository-url>
 cd omnitools-app-mcp
+
+# If already cloned without submodules
+npm run submodules:update
 
 # Run automated setup
 npm run setup
@@ -142,6 +145,18 @@ npm run lint:fix
 npm run build
 ```
 
+### Submodule Management
+
+This repository uses `omni-tools` as a git submodule in `src/lib/omni-tools`.
+
+```bash
+# Initialize/sync/update to pinned commits
+npm run submodules:update
+
+# Move submodules to latest remote references
+npm run submodules:update:remote
+```
+
 ## Git Workflow
 
 This project follows a structured Git workflow with conventional commits:
@@ -215,7 +230,14 @@ The server uses STDIO transport (not network ports). Ensure your MCP client is c
 
 ## License
 
-MIT
+This project is licensed under the MIT License. See `LICENSE`.
+
+## Credits
+
+- `omni-tools` by `iib0011`: https://github.com/iib0011/omni-tools
+- OmniTools website: https://omnitools.app/
+
+This project builds an MCP server layer around OmniTools to make those utilities accessible to AI agents.
 
 ## Links
 
