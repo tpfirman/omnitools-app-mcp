@@ -1,0 +1,3 @@
+[submodule "src/lib/omni-tools"]
+	path = src/lib/omni-tools
+	url = https://github.com/iib0011/omni-tools

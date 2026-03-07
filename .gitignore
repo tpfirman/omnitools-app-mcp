@@ -41,5 +41,3 @@ coverage/
 *.temp
 .cache/
 
-# Git submodules (will be added later)
-src/lib/omni-tools/
