@@ -1,0 +1,94 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          submodules: recursive
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run tests
+        run: npm test -- --runInBand
+
+      - name: Build
+        run: npm run build
+
+      - name: Package distribution
+        run: |
+          mkdir -p dist-release
+          cp -r dist/* dist-release/
+          cp package.json dist-release/
+          cp package-lock.json dist-release/
+          cp README.md dist-release/
+          cp LICENSE dist-release/
+          cp .env.example dist-release/
+          cd dist-release
+          npm ci --omit=dev
+          cd ..
+          tar -czf omnitools-mcp-server-${GITHUB_REF_NAME}.tar.gz -C dist-release .
+          zip -r omnitools-mcp-server-${GITHUB_REF_NAME}.zip dist-release/
+
+      - name: Extract release notes
+        id: release_notes
+        run: |
+          # Extract version from tag (e.g., v1.2.3 -> 1.2.3)
+          VERSION=${GITHUB_REF_NAME#v}
+          
+          # Try to extract release notes from CHANGELOG.md
+          if [ -f CHANGELOG.md ]; then
+            # Extract section for this version
+            NOTES=$(awk "/## \[?${VERSION}\]?/,/## \[?[0-9]/" CHANGELOG.md | sed '1d;$d')
+            if [ -z "$NOTES" ]; then
+              NOTES="See [CHANGELOG.md](CHANGELOG.md) for details."
+            fi
+          else
+            NOTES="Release ${VERSION}"
+          fi
+          
+          # Save to file for GitHub release body
+          echo "$NOTES" > release_notes.md
+          
+          # Output for next step
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          body_path: release_notes.md
+          files: |
+            omnitools-mcp-server-*.tar.gz
+            omnitools-mcp-server-*.zip
+          draft: false
+          prerelease: ${{ contains(github.ref_name, '-') }}
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Update latest tag
+        if: ${{ !contains(github.ref_name, '-') }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag -f latest
+          git push origin latest --force

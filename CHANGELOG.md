@@ -15,10 +15,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - FFmpeg/ffprobe media wrappers (metadata + audio extraction)
 - PDF document wrappers (text extraction + merge via system tools)
 - Unit tests for tool registry search and execution paths
+- Automated release workflow (`.github/workflows/release.yml`)
+- Comprehensive contributing guidelines (`CONTRIBUTING.md`)
+- Branch protection setup documentation
+- Trunk-based development workflow with `main`, `dev`, and feature branches
 
 ### Updated
 - README and usage examples for dispatcher-first workflow
 - Server handlers now route through registry-based execution
+- Git workflow documentation with detailed branching strategy
+- Release process now automated via GitHub Actions on version tags
+- Publishing workflow feature plan marked complete
 
 ### Completed
 - Phase 1: Base server foundation
@@ -26,6 +33,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Phase 3: Media integration baseline
 - Phase 4: Dynamic dispatcher implementation
 - Phase 5: In progress (client-specific validation remains)
+- Automated release and workflow infrastructure
 
 ## [0.1.0] - 2026-03-07
 

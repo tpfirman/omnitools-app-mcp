@@ -169,12 +169,39 @@ npm run submodules:update:remote
 
 ## Git Workflow
 
-This project follows a structured Git workflow with conventional commits:
+This project follows a **trunk-based development** workflow:
 
-- **Branches**: `main`, `dev`, `feature/*`, `bugfix/*`, `hotfix/*`
-- **Commits**: `feat:`, `fix:`, `chore:`, `docs:`, `test:`, `refactor:`
+```
+main (production) ← PR from dev when ready to release
+  ↑
+dev (integration) ← PR from all feature branches
+  ↑
+feature/*, bugfix/*, hotfix/* (working branches from main)
+```
 
-See [`.instructions.md`](.instructions.md) for complete guidelines.
+### Quick Reference
+
+1. **Keep local branches synced:**
+   ```bash
+   git checkout main && git pull origin main
+   git checkout dev && git pull origin dev
+   ```
+
+2. **Create branches from `main`:**
+   ```bash
+   git checkout main
+   git checkout -b feature/my-feature
+   ```
+
+3. **Open PR to `dev`** (not `main`) when feature is complete
+
+4. **Release process:** When ready, PR `dev` → `main`, then create version tag:
+   ```bash
+   git tag -a v1.0.0 -m "Release v1.0.0"
+   git push origin v1.0.0
+   ```
+
+**For detailed workflow instructions, see [CONTRIBUTING.md](CONTRIBUTING.md)**
 
 ## Implementation Status
 
@@ -247,18 +274,44 @@ The server uses STDIO transport (not network ports). Ensure your MCP client is c
 
 ## Contributing
 
-1. Follow the guidelines in [`.instructions.md`](.instructions.md)
-2. Use conventional commits
-3. Write tests for new features
-4. Update documentation
+We welcome contributions! Please follow these guidelines:
 
-## Publishing (Idea)
+1. **Read [CONTRIBUTING.md](CONTRIBUTING.md)** for detailed workflow
+2. **Branch from `main`** and PR into `dev`
+3. **Use conventional commits** (`feat:`, `fix:`, `docs:`, etc.)
+4. **Write tests** for new features
+5. **Update documentation** as needed
+6. **Ensure CI passes** before requesting review
 
-Publishing is currently handled manually.
+## Releases
 
-- A future publishing workflow is tracked in `docs/plans/features/feature-publishing-workflow.md`
-- No release tag automation is planned yet
-- Git merge/push/release operations remain human-driven
+Releases are automated via GitHub Actions:
+
+1. **Development:** Feature branches → `dev` via PR
+2. **Release preparation:** `dev` → `main` via PR
+3. **Create release:** Tag `main` with version (e.g., `v1.0.0`)
+4. **Automation:** GitHub Actions builds, tests, and publishes release
+
+### Creating a Release
+
+```bash
+# After merging dev into main
+git checkout main
+git pull origin main
+
+# Create annotated tag
+git tag -a v1.0.0 -m "Release v1.0.0"
+
+# Push tag to trigger release workflow
+git push origin v1.0.0
+```
+
+The release workflow (`.github/workflows/release.yml`) automatically:
+- ✅ Runs full test suite
+- ✅ Builds production bundle
+- ✅ Creates GitHub Release with notes
+- ✅ Attaches distribution artifacts (.tar.gz and .zip)
+- ✅ Updates `latest` tag
 
 ## License
 
