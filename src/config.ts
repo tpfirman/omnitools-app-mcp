@@ -66,8 +66,11 @@ export function loadConfig(): Config {
     maxFileSize: env.MAX_FILE_SIZE ? parseInt(env.MAX_FILE_SIZE, 10) : undefined,
     searchResultLimit: env.SEARCH_RESULT_LIMIT ? parseInt(env.SEARCH_RESULT_LIMIT, 10) : undefined,
     searchRankingMethod: env.SEARCH_RANKING_METHOD as 'keyword' | 'semantic' | undefined,
-    allowedDirectories: env.ALLOWED_DIRECTORIES 
-      ? env.ALLOWED_DIRECTORIES.split(',').map(d => d.trim())
+    allowedDirectories: env.ALLOWED_DIRECTORIES !== undefined
+      ? env.ALLOWED_DIRECTORIES
+          .split(',')
+          .map(d => d.trim())
+          .filter(Boolean)
       : ['/tmp'],
     logLevel: env.LOG_LEVEL as 'debug' | 'info' | 'warn' | 'error' | undefined,
     logFile: env.LOG_FILE,

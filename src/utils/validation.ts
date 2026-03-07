@@ -1,5 +1,6 @@
 import { exec } from 'child_process';
 import { promisify } from 'util';
+import { existsSync } from 'fs';
 import type { Config } from '../config.js';
 import type { Logger } from './logger.js';
 
@@ -59,8 +60,6 @@ function validateDirectories(config: Config): { passed: boolean; warnings: strin
   
   for (const dir of config.allowedDirectories) {
     try {
-      // Just check if we can stat the directory
-      const { existsSync } = require('fs');
       if (!existsSync(dir)) {
         warnings.push(`Allowed directory does not exist: ${dir}`);
       }
