@@ -228,6 +228,14 @@ The server uses STDIO transport (not network ports). Ensure your MCP client is c
 3. Write tests for new features
 4. Update documentation
 
+## Publishing (Idea)
+
+Publishing is currently handled manually.
+
+- A future publishing workflow is tracked in `docs/plans/features/feature-publishing-workflow.md`
+- No release tag automation is planned yet
+- Git merge/push/release operations remain human-driven
+
 ## License
 
 This project is licensed under the MIT License. See `LICENSE`.
@@ -245,6 +253,7 @@ This project builds an MCP server layer around OmniTools to make those utilities
 - [OmniTools GitHub](https://github.com/iib0011/omni-tools)
 - [MCP Specification](https://modelcontextprotocol.io/)
 - [Project Plan](docs/plans/initial-plan.md)
+- [Publishing Workflow Idea](docs/plans/features/feature-publishing-workflow.md)
 
 ## Support
 
