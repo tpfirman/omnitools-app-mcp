@@ -70,7 +70,11 @@ jobs:
           # Extract version from semantic tag (e.g., v1.2.3 -> 1.2.3)
           VERSION=${GITHUB_REF_NAME#v}
           if [ -f CHANGELOG.md ]; then
-            NOTES=$(awk "/## \[?${VERSION}\]?/,/## \[?[0-9]/" CHANGELOG.md | sed '1d;$d')
+            NOTES=$(awk -v ver="$VERSION" '
+              $0 ~ "^## \\[?" ver "\\]?([[:space:]]|$)" { in_section=1; next }
+              in_section && /^## / { exit }
+              in_section { print }
+            ' CHANGELOG.md)
             if [ -z "$NOTES" ]; then
               NOTES="See [CHANGELOG.md](CHANGELOG.md) for details."
             fi
