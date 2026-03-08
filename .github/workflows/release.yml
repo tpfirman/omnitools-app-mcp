@@ -188,5 +188,5 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git tag -d latest || true
-          git tag -f latest "${{ steps.metadata.outputs.tag }}"
+          git tag -f latest "${{ github.sha }}"
           git push origin latest --force
