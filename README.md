@@ -215,7 +215,7 @@ Notes:
 - GitHub Actions workflow: `.github/workflows/ci.yml`
 - CI runs on PRs to `main` and pushes to `dev`/`feature/**`
 - Required status check to protect `main`: `Lint, Test, Build (Node 20)`
-- Configure branch protection in GitHub: Settings -> Branches -> Add rule
+- Configure repository rulesets in GitHub: Settings -> Rules -> Rulesets
 
 ## Git Workflow
 
@@ -245,11 +245,7 @@ feature/*, bugfix/*, hotfix/* (working branches from main)
 
 3. **Open PR to `dev`** (not `main`) when feature is complete
 
-4. **Release process:** When ready, PR `dev` → `main`, then create version tag:
-   ```bash
-   git tag -a v1.0.0 -m "Release v1.0.0"
-   git push origin v1.0.0
-   ```
+4. **Release process:** Merge PR `dev` → `main`; `release.yml` publishes/updates the GitHub Release using `package.json` version and PR body notes.
 
 **For detailed workflow instructions, see [CONTRIBUTING.md](CONTRIBUTING.md)**
 
@@ -337,33 +333,31 @@ We welcome contributions! Please follow these guidelines:
 
 ## Releases
 
-Releases are automated via GitHub Actions and triggered by pushing semantic version tags:
+Releases are automated via GitHub Actions and triggered when changes are merged into `main`:
 
 1. **Development:** Feature branches → `dev` via PR
 2. **Release preparation:** `dev` → `main` via PR
-3. **Release trigger:** Push a version tag (e.g., `v1.0.0`) after merge to `main`
+3. **Version source:** `package.json` `version` field (semantic version)
 4. **GitHub Release:** Workflow builds, packages, and publishes artifacts automatically
+5. **Release notes:** Merged PR body with footer `For a full list of changes, see CHANGELOG.md`
 
 ### Creating a Semantic Version Release
 
 ```bash
-# After merging dev into main
-git checkout main
-git pull origin main
+# Before opening release PR, bump version in your branch
+npm version patch --no-git-tag-version
 
-# Create annotated tag
-git tag -a v1.0.0 -m "Release v1.0.0"
-
-# Push tag to trigger release workflow
-git push origin v1.0.0
+# Commit the version bump and changes, then open PR dev -> main
+# Merging that PR triggers release workflow automatically
 ```
 
 The release workflow (`.github/workflows/release.yml`) automatically:
 - ✅ Runs full test suite
 - ✅ Builds production bundle
-- ✅ Creates GitHub Release with notes
+- ✅ Creates/updates GitHub Release using `v<package.json version>`
+- ✅ Uses merged PR body as release notes
 - ✅ Attaches distribution artifacts (.tar.gz and .zip)
-- ✅ Updates `latest` tag (semantic tags only)
+- ✅ Updates `latest` tag for stable versions
 
 ## License
 
