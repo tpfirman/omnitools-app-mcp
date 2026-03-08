@@ -238,19 +238,6 @@ feature/*, bugfix/*, hotfix/* (working branches from main)
 
 **For detailed workflow instructions, see [CONTRIBUTING.md](CONTRIBUTING.md)**
 
-## Release workflow
-
-This project uses automated GitHub Actions workflows that are triggered when you push a semantic version tag.
-
-For the canonical release documentation, including tag formats and detailed behavior, see the primary [Releases](#releases) section above.
-1. Checks out code (including submodules)
-2. Runs tests
-3. Builds production artifacts
-4. Packages `.tar.gz` and `.zip` distributions
-5. Extracts release notes from `CHANGELOG.md`
-6. Publishes a GitHub Release with artifacts
-7. Updates the `latest` tag for stable releases
-
 ## Implementation Status
 
 ### Completed
