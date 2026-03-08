@@ -123,10 +123,21 @@ function writeError(
 }
 
 async function readJsonBody(req: IncomingMessage, res: ServerResponse): Promise<unknown | undefined> {
+  const MAX_BODY_BYTES = 1 * 1024 * 1024; // 1 MiB
   const chunks: Buffer[] = [];
+  let totalBytes = 0;
 
   for await (const chunk of req) {
-    chunks.push(typeof chunk === 'string' ? Buffer.from(chunk) : chunk);
+    const bufferChunk = typeof chunk === 'string' ? Buffer.from(chunk) : chunk;
+    totalBytes += bufferChunk.length;
+
+    if (totalBytes > MAX_BODY_BYTES) {
+      writeError(res, 413, 'PAYLOAD_TOO_LARGE', 'Request body is too large');
+      req.destroy();
+      return undefined;
+    }
+
+    chunks.push(bufferChunk);
   }
 
   if (chunks.length === 0) {
