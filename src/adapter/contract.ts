@@ -23,8 +23,12 @@ export const searchResponseSchema = z.object({
 
 export const runRequestSchema = z.object({
   toolName: z.string().min(1),
-  args: z.record(z.unknown()).default({}),
-});
+  args: z.record(z.unknown()).optional(),
+  arguments: z.record(z.unknown()).optional(),
+}).transform((payload) => ({
+  toolName: payload.toolName,
+  args: payload.args ?? payload.arguments ?? {},
+}));
 
 export const runResponseSchema: z.ZodType<ToolResult> = z.object({
   success: z.boolean(),

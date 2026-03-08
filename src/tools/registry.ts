@@ -14,8 +14,12 @@ const searchSchema = z.object({
 
 const runSchema = z.object({
   toolName: z.string().min(1),
-  args: z.record(z.any()).default({}),
-});
+  args: z.record(z.any()).optional(),
+  arguments: z.record(z.any()).optional(),
+}).transform((payload) => ({
+  toolName: payload.toolName,
+  args: payload.args ?? payload.arguments ?? {},
+}));
 
 export class ToolRegistry {
   private readonly tools: Map<string, ToolDefinition>;

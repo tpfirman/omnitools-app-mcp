@@ -24,20 +24,20 @@ jobs:
           echo "Validating PR source '${HEAD}' -> target '${BASE}'"
 
           if [[ "${BASE}" == "main" ]]; then
-            if [[ "${HEAD}" == "dev" || "${HEAD}" == hotfix/* ]]; then
-              echo "OK: main accepts dev and hotfix/*"
+            if [[ "${HEAD}" == "dev" || "${HEAD}" == hotfix/* || "${HEAD}" == bugfix/* ]]; then
+              echo "OK: main accepts dev, bugfix/*, and hotfix/*"
               exit 0
             fi
-            echo "ERROR: PRs into main must come from 'dev' or 'hotfix/*'."
+            echo "ERROR: PRs into main must come from 'dev', 'bugfix/*', or 'hotfix/*'."
             exit 1
           fi
 
           if [[ "${BASE}" == "dev" ]]; then
-            if [[ "${HEAD}" == feature/* || "${HEAD}" == bugfix/* || "${HEAD}" == hotfix/* ]]; then
-              echo "OK: dev accepts feature/*, bugfix/*, and hotfix/*"
+            if [[ "${HEAD}" == feature/* || "${HEAD}" == bugfix/* ]]; then
+              echo "OK: dev accepts feature/* and bugfix/*"
               exit 0
             fi
-            echo "ERROR: PRs into dev must come from 'feature/*', 'bugfix/*', or 'hotfix/*'."
+            echo "ERROR: PRs into dev must come from 'feature/*' or 'bugfix/*'."
             exit 1
           fi
 

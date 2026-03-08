@@ -20,9 +20,9 @@ describe('GitHub Actions workflows', () => {
     const branchCheck = readWorkflow('branch-source-check.yml');
 
     expect(branchCheck).toContain('if [[ "${BASE}" == "main" ]]');
-    expect(branchCheck).toContain('"${HEAD}" == "dev" || "${HEAD}" == hotfix/*');
+    expect(branchCheck).toContain('"${HEAD}" == "dev" || "${HEAD}" == hotfix/* || "${HEAD}" == bugfix/*');
     expect(branchCheck).toContain('if [[ "${BASE}" == "dev" ]]');
-    expect(branchCheck).toContain('"${HEAD}" == feature/* || "${HEAD}" == bugfix/* || "${HEAD}" == hotfix/*');
+    expect(branchCheck).toContain('"${HEAD}" == feature/* || "${HEAD}" == bugfix/*');
   });
 
   test('release workflow is merge-to-main and package-version based', () => {

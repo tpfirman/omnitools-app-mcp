@@ -28,6 +28,26 @@ describe('adapter contract schemas', () => {
     ).toThrow();
   });
 
+  it('normalizes run request payload from arguments alias', () => {
+    const parsed = runRequestSchema.parse({
+      toolName: 'json_format',
+      arguments: { input: '{"a":1}' },
+    });
+
+    expect(parsed.toolName).toBe('json_format');
+    expect(parsed.args).toEqual({ input: '{"a":1}' });
+  });
+
+  it('prefers args when both args and arguments are provided', () => {
+    const parsed = runRequestSchema.parse({
+      toolName: 'json_format',
+      args: { input: '{"from":"args"}' },
+      arguments: { input: '{"from":"arguments"}' },
+    });
+
+    expect(parsed.args).toEqual({ input: '{"from":"args"}' });
+  });
+
   it('validates normalized run response payload', () => {
     const parsed = runResponseSchema.parse({
       success: true,
