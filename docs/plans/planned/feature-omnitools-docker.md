@@ -114,4 +114,4 @@ Use local network containers, bounded timeouts, and selective caching
 
 ## Status
 
-Ready for implementation
+Implemented (initial delivery on 2026-03-08)

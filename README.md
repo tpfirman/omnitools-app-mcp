@@ -24,11 +24,8 @@ A Model Context Protocol (MCP) server that provides AI agents access to self-hos
 
 ```bash
 # Clone the repository
-git clone --recurse-submodules <repository-url>
+git clone <repository-url>
 cd omnitools-app-mcp
-
-# If already cloned without submodules
-npm run submodules:update
 
 # Run automated setup
 npm run setup
@@ -61,6 +58,10 @@ MAX_FILE_SIZE=52428800  # 50 MB
 # Search configuration
 SEARCH_RESULT_LIMIT=10
 
+# Backend mode
+OMNI_BACKEND=local
+OMNI_ADAPTER_URL=http://127.0.0.1:8081
+
 # Security: whitelist allowed directories
 ALLOWED_DIRECTORIES=/tmp,/home/user/workspace
 
@@ -79,7 +80,18 @@ npm start
 npm run dev
 ```
 
-### 4. Add MCP Server to VS Code (User Scope)
+### 4. Run Docker Compose Topology
+
+```bash
+docker compose up --build
+```
+
+Services:
+- `omni-tools-ui`: official OmniTools UI at `http://localhost:8080`
+- `omni-adapter`: adapter API at `http://localhost:8081` (`/health`, `/tools/search`, `/tools/run`)
+- `mcp-server`: MCP runtime configured with `OMNI_BACKEND=adapter`
+
+### 5. Add MCP Server to VS Code (User Scope)
 
 Use user-level MCP settings so no repository artifacts are created.
 
@@ -100,6 +112,8 @@ Use user-level MCP settings so no repository artifacts are created.
         "TOOL_TIMEOUT": "60",
         "MAX_FILE_SIZE": "52428800",
         "SEARCH_RESULT_LIMIT": "10",
+        "OMNI_BACKEND": "local",
+        "OMNI_ADAPTER_URL": "http://127.0.0.1:8081",
         "LOG_LEVEL": "info"
       }
     }
@@ -119,8 +133,9 @@ Quick verification:
 The server follows a modular architecture:
 
 1. **Transport Layer**: JSON-RPC over STDIO communication
-2. **Omni-Bridge**: Maps MCP requests to OmniTools functions
-3. **Utility Layer**: File I/O, FFmpeg, and system dependencies
+2. **Backend Router**: `OMNI_BACKEND=local|adapter` selects execution path
+3. **Adapter Boundary**: Optional HTTP adapter (`/health`, `/tools/search`, `/tools/run`)
+4. **Utility Layer**: File I/O, FFmpeg, and system dependencies
 
 ### Token Efficiency: The Dispatcher Pattern
 
@@ -141,6 +156,8 @@ omnitools-app-mcp/
 ├── src/
 │   ├── index.ts           # Entry point
 │   ├── server.ts          # MCP server implementation
+│   ├── adapter/           # Omni adapter service + contract schemas
+│   ├── backend/           # Backend providers (local + adapter)
 │   ├── config.ts          # Configuration management
 │   ├── tools/             # Tool wrappers
 │   └── utils/             # Utilities (logger, validation)
@@ -183,17 +200,15 @@ npm run lint:fix
 npm run build
 ```
 
-### Submodule Management
-
-This repository uses `omni-tools` as a git submodule in `src/lib/omni-tools`.
+### Benchmarking Backends
 
 ```bash
-# Initialize/sync/update to pinned commits
-npm run submodules:update
-
-# Move submodules to latest remote references
-npm run submodules:update:remote
+npm run benchmark:backends
 ```
+
+Notes:
+- Always measures local registry latency
+- Measures adapter latency only when `OMNI_ADAPTER_URL` is reachable
 
 ### CI and Branch Protection
 
@@ -276,6 +291,8 @@ All environment variables with defaults:
 | `MAX_FILE_SIZE` | `52428800` | Maximum file size (bytes) |
 | `SEARCH_RESULT_LIMIT` | `10` | Number of search results |
 | `SEARCH_RANKING_METHOD` | `keyword` | Ranking algorithm |
+| `OMNI_BACKEND` | `local` | Tool backend mode (`local` or `adapter`) |
+| `OMNI_ADAPTER_URL` | `http://127.0.0.1:8081` | Adapter base URL for `adapter` mode |
 | `ALLOWED_DIRECTORIES` | `/tmp` | Comma-separated paths |
 | `LOG_LEVEL` | `info` | Log verbosity level |
 | `LOG_FILE` | `logs/mcp-server.log` | Log file path |

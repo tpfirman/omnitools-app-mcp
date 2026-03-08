@@ -27,5 +27,5 @@
     "resolveJsonModule": true
   },
   "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist", "tests", "src/lib/omni-tools"]
+  "exclude": ["node_modules", "dist", "tests"]
 }

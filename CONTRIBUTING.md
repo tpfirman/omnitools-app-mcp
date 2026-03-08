@@ -229,12 +229,9 @@ See **Branch Protection Setup** section below for instructions.
 ### Initial Clone
 
 ```bash
-# Clone with submodules
-git clone --recurse-submodules https://github.com/tpfirman/omnitools-app-mcp.git
+# Clone repository
+git clone https://github.com/tpfirman/omnitools-app-mcp.git
 cd omnitools-app-mcp
-
-# Or if already cloned
-git submodule update --init --recursive
 
 # Install dependencies
 npm install
@@ -249,14 +246,10 @@ npm test
 npm run build
 ```
 
-### Keeping Submodules Updated
+### Optional: Run Docker Topology
 
 ```bash
-# Update to pinned commits
-npm run submodules:update
-
-# Update to latest remote versions
-npm run submodules:update:remote
+docker compose up --build
 ```
 
 ## CI/CD Pipeline
@@ -267,7 +260,7 @@ Our CI/CD runs on:
 
 ### CI Workflow Stages
 
-1. **Checkout** - Fetch code with submodules
+1. **Checkout** - Fetch repository code
 2. **Setup** - Install Node.js 20 and dependencies
 3. **Lint** - Run ESLint checks
 4. **Test** - Run Jest test suite

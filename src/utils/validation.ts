@@ -3,6 +3,7 @@ import { promisify } from 'util';
 import { existsSync } from 'fs';
 import type { Config } from '../config.js';
 import type { Logger } from './logger.js';
+import { AdapterOmniBackend } from '../backend/adapterBackend.js';
 
 const execAsync = promisify(exec);
 
@@ -88,12 +89,24 @@ export async function validateStartup(config: Config, logger: Logger): Promise<V
     logger.info(`Node.js version: ${process.version} ✓`);
   }
   
-  // Validate FFmpeg
-  const ffmpegCheck = await validateFFmpeg(config);
-  if (!ffmpegCheck.passed && ffmpegCheck.error) {
-    errors.push(ffmpegCheck.error);
+  if (config.omniBackend === 'local') {
+    // Local backend executes tools directly, so FFmpeg must be available for media tools.
+    const ffmpegCheck = await validateFFmpeg(config);
+    if (!ffmpegCheck.passed && ffmpegCheck.error) {
+      errors.push(ffmpegCheck.error);
+    } else {
+      logger.info('FFmpeg available ✓');
+    }
   } else {
-    logger.info('FFmpeg available ✓');
+    const adapterBackend = new AdapterOmniBackend(config, logger);
+    const healthy = await adapterBackend.healthcheck();
+    if (!healthy) {
+      errors.push(
+        `Adapter backend healthcheck failed at ${config.omniAdapterUrl}. Ensure omni-adapter is running.`
+      );
+    } else {
+      logger.info(`Adapter backend reachable at ${config.omniAdapterUrl} ✓`);
+    }
   }
   
   // Validate directories
