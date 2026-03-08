@@ -15,7 +15,7 @@ permissions:
 
 jobs:
   release:
-    if: ${{ (github.event_name == 'pull_request' && github.event.pull_request.merged == true) || github.event_name == 'push' }}
+    if: ${{ (github.event_name == 'pull_request' && github.event.pull_request.merged == true && github.event.pull_request.base.ref == 'main' && github.event.pull_request.head.ref == 'dev') || github.event_name == 'push' }}
     runs-on: ubuntu-latest
     
     steps:
@@ -47,6 +47,14 @@ jobs:
           echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
           echo "name=${NAME}" >> "$GITHUB_OUTPUT"
           echo "prerelease=${PRERELEASE}" >> "$GITHUB_OUTPUT"
+
+      - name: Create release tag for PR merge
+        if: ${{ github.event_name == 'pull_request' }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag "${{ steps.metadata.outputs.tag }}" "${{ github.event.pull_request.merge_commit_sha }}"
+          git push origin "${{ steps.metadata.outputs.tag }}"
 
       - name: Setup Node.js
         uses: actions/setup-node@v4

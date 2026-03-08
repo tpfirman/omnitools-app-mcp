@@ -42,7 +42,7 @@ But **do not include** repository settings or branch protection management.
    - ✅ **Require status checks to pass before merging**
      - ✅ Require branches to be up to date before merging
      - **Status checks that are required:**
-       - `Lint, Test, Build (20.x)`
+       - `Lint, Test, Build (Node 20)`
    
    - ✅ **Require conversation resolution before merging**
    
@@ -70,7 +70,7 @@ But **do not include** repository settings or branch protection management.
 
    **Protection rules:**
    - ✅ **Require status checks to pass before merging**
-     - Status checks: `Lint, Test, Build (20.x)`
+     - Status checks: `Lint, Test, Build (Node 20)`
    
    - ✅ **Require linear history** (optional - prevents merge commits)
    
@@ -154,7 +154,7 @@ await mcp_github_update_branch_protection({
     },
     required_status_checks: {
       strict: true,
-      contexts: ['Lint, Test, Build (20.x)']
+      contexts: ['Lint, Test, Build (Node 20)']
     },
     enforce_admins: true,
     restrictions: null
