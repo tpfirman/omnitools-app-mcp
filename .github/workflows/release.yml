@@ -1,11 +1,6 @@
 name: Release
 
 on:
-  pull_request:
-    branches:
-      - main
-    types:
-      - closed
   push:
     tags:
       - 'v*.*.*'
@@ -15,46 +10,29 @@ permissions:
 
 jobs:
   release:
-    if: ${{ (github.event_name == 'pull_request' && github.event.pull_request.merged == true && github.event.pull_request.base.ref == 'main' && github.event.pull_request.head.ref == 'dev') || github.event_name == 'push' }}
     runs-on: ubuntu-latest
     
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.pull_request.merge_commit_sha || github.sha }}
           fetch-depth: 0
           submodules: recursive
 
       - name: Prepare release metadata
         id: metadata
         run: |
-          if [ "${GITHUB_EVENT_NAME}" = "pull_request" ]; then
-            SHORT_SHA=$(git rev-parse --short HEAD)
-            TAG="main-pr-${{ github.event.pull_request.number }}-${SHORT_SHA}"
-            NAME="Main Merge #${{ github.event.pull_request.number }}"
+          TAG="${GITHUB_REF_NAME}"
+          NAME="${GITHUB_REF_NAME}"
+          if [[ "${GITHUB_REF_NAME}" == *"-"* ]]; then
             PRERELEASE=true
           else
-            TAG="${GITHUB_REF_NAME}"
-            NAME="${GITHUB_REF_NAME}"
-            if [[ "${GITHUB_REF_NAME}" == *"-"* ]]; then
-              PRERELEASE=true
-            else
-              PRERELEASE=false
-            fi
+            PRERELEASE=false
           fi
 
           echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
           echo "name=${NAME}" >> "$GITHUB_OUTPUT"
           echo "prerelease=${PRERELEASE}" >> "$GITHUB_OUTPUT"
-
-      - name: Create release tag for PR merge
-        if: ${{ github.event_name == 'pull_request' }}
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git tag "${{ steps.metadata.outputs.tag }}" "${{ github.event.pull_request.merge_commit_sha }}"
-          git push origin "${{ steps.metadata.outputs.tag }}"
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -89,25 +67,15 @@ jobs:
       - name: Extract release notes
         id: release_notes
         run: |
-          if [ "${GITHUB_EVENT_NAME}" = "push" ]; then
-            # Extract version from semantic tag (e.g., v1.2.3 -> 1.2.3)
-            VERSION=${GITHUB_REF_NAME#v}
-            if [ -f CHANGELOG.md ]; then
-              NOTES=$(awk "/## \[?${VERSION}\]?/,/## \[?[0-9]/" CHANGELOG.md | sed '1d;$d')
-              if [ -z "$NOTES" ]; then
-                NOTES="See [CHANGELOG.md](CHANGELOG.md) for details."
-              fi
-            else
-              NOTES="Release ${VERSION}"
+          # Extract version from semantic tag (e.g., v1.2.3 -> 1.2.3)
+          VERSION=${GITHUB_REF_NAME#v}
+          if [ -f CHANGELOG.md ]; then
+            NOTES=$(awk "/## \[?${VERSION}\]?/,/## \[?[0-9]/" CHANGELOG.md | sed '1d;$d')
+            if [ -z "$NOTES" ]; then
+              NOTES="See [CHANGELOG.md](CHANGELOG.md) for details."
             fi
           else
-            NOTES=$(cat <<EOF
-Automated release for merged PR #${{ github.event.pull_request.number }} into main.
-
-- PR: ${{ github.event.pull_request.html_url }}
-- Merge commit: ${{ github.event.pull_request.merge_commit_sha }}
-EOF
-)
+            NOTES="Release ${VERSION}"
           fi
           
           # Save to file for GitHub release body
@@ -118,7 +86,7 @@ EOF
         with:
           tag_name: ${{ steps.metadata.outputs.tag }}
           name: ${{ steps.metadata.outputs.name }}
-          target_commitish: ${{ github.event.pull_request.merge_commit_sha || github.sha }}
+          target_commitish: ${{ github.sha }}
           body_path: release_notes.md
           files: |
             omnitools-mcp-server-*.tar.gz
@@ -130,7 +98,7 @@ EOF
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Update latest tag
-        if: ${{ github.event_name == 'push' && startsWith(github.ref_name, 'v') && !contains(github.ref_name, '-') }}
+        if: ${{ startsWith(github.ref_name, 'v') && !contains(github.ref_name, '-') }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"

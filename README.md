@@ -238,6 +238,34 @@ feature/*, bugfix/*, hotfix/* (working branches from main)
 
 **For detailed workflow instructions, see [CONTRIBUTING.md](CONTRIBUTING.md)**
 
+## Releases
+
+Releases are automated with GitHub Actions and triggered by pushing semantic version tags.
+
+### Tag Format
+
+- Stable: `vMAJOR.MINOR.PATCH` (example: `v1.2.3`)
+- Pre-release: `vMAJOR.MINOR.PATCH-alpha.1`, `vMAJOR.MINOR.PATCH-beta.1`, `vMAJOR.MINOR.PATCH-rc.1`
+
+### Create a Release
+
+```bash
+git checkout main
+git pull origin main
+git tag -a v1.0.0 -m "Release v1.0.0"
+git push origin v1.0.0
+```
+
+### What the Workflow Does
+
+1. Checks out code (including submodules)
+2. Runs tests
+3. Builds production artifacts
+4. Packages `.tar.gz` and `.zip` distributions
+5. Extracts release notes from `CHANGELOG.md`
+6. Publishes a GitHub Release with artifacts
+7. Updates the `latest` tag for stable releases
+
 ## Implementation Status
 
 ### Completed
