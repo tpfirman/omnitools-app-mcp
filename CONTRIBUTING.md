@@ -97,21 +97,27 @@ When `dev` is ready for a new release:
 
 ### Automated Release Creation
 
-After merging `dev` into `main`, a release can be created automatically:
+Releases are created automatically when a PR is merged into `main`. The workflow:
+
+1. Reads the version from `package.json`
+2. Checks if a release for that version tag already exists
+3. If not, builds the project, runs tests, and creates a GitHub Release with:
+   - Tag: `v<version>` (from `package.json`)
+   - Release notes: merged PR body
+   - Distribution artifacts (`.tar.gz` and `.zip`)
+
+**Before opening a release PR**, bump the version in your branch:
 
 ```bash
-# On the main branch, create and push a version tag
-git checkout main
-git pull origin main
-git tag -a v1.0.0 -m "Release v1.0.0"
-git push origin v1.0.0
+# Bump the patch, minor, or major version as appropriate
+npm version patch --no-git-tag-version
+
+# Commit the version bump
+git add package.json package-lock.json
+git commit -m "chore: bump version to x.y.z"
 ```
 
-The GitHub Actions workflow will automatically:
-- Build the project
-- Generate release notes
-- Create a GitHub Release
-- Attach build artifacts
+Then open a PR from `dev` → `main`. Merging that PR triggers the release workflow automatically.
 
 ## Conventional Commits
 
@@ -222,7 +228,7 @@ The `dev` branch should be protected with:
 1. **Require status checks** (CI must pass)
 2. **Allow force pushes** only from administrators (for rare cases)
 
-See **Branch Protection Setup** section below for instructions.
+See [docs/BRANCH_PROTECTION_SETUP.md](docs/BRANCH_PROTECTION_SETUP.md) for setup instructions.
 
 ## Repository Setup
 
@@ -301,44 +307,7 @@ Triggered on pushes to `main` (after merges):
 
 ## Branch Protection Setup
 
-Since GitHub MCP tools don't currently support repository ruleset management, these must be configured manually via GitHub UI:
-
-### Protecting `main` Branch
-
-1. Go to **Settings** → **Rules** → **Rulesets**
-2. Create or edit a ruleset targeting `main`
-3. Configure:
-   - **Branch name pattern:** `main`
-   - ✅ **Require a pull request before merging**
-     - Required approvals: 1
-     - ✅ Dismiss stale reviews when new commits are pushed
-   - ✅ **Require status checks to pass before merging**
-     - ✅ Require branches to be up to date before merging
-     - Status checks: `Lint, Test, Build (Node 20)`
-   - ✅ **Do not allow bypassing the above settings**
-   - ✅ **Restrict who can push to matching branches** (optional - maintainers only)
-4. Save and enable the ruleset
-
-### Protecting `dev` Branch
-
-1. Go to **Settings** → **Rules** → **Rulesets**
-2. Create or edit a ruleset targeting `dev`
-3. Configure:
-   - **Branch name pattern:** `dev`
-   - ✅ **Require status checks to pass before merging**
-     - Status checks: `Lint, Test, Build (Node 20)`
-   - ✅ **Require linear history** (optional - prevents merge commits)
-4. Save and enable the ruleset
-
-### Verifying Protection Rules
-
-```bash
-# Check if branch is protected (requires GitHub CLI)
-gh api repos/tpfirman/omnitools-app-mcp/branches/main/protection
-
-# Or visit:
-# https://github.com/tpfirman/omnitools-app-mcp/settings/rules
-```
+Branch protection must be configured manually via the GitHub UI. See [docs/BRANCH_PROTECTION_SETUP.md](docs/BRANCH_PROTECTION_SETUP.md) for full instructions.
 
 ---
 

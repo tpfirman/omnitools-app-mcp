@@ -1,5 +1,7 @@
 # Project Plan: OmniTools MCP Server
 
+> **Note:** This is the original planning document from project inception. The implementation may differ from what is described here. For current architecture and usage, refer to [README.md](../README.md).
+
 ## 1. Project Overview
 This project aims to an MCP server to allow AI agents access to the self hosted "omnitools.app" package.
 https://omnitools.app/
@@ -59,7 +61,7 @@ Instead of exposing every function as a top-level tool, we expose:
 ## 4. Suggested Project Structure
 
 ```text
-omni-mcp-server/
+omnitools-app-mcp/
 ├── src/
 │   ├── index.ts           # Entry point & Server setup
 │   ├── server.ts          # MCP implementation (Tools/Resources/Prompts)
