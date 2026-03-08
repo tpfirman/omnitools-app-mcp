@@ -40,8 +40,24 @@ jobs:
           echo "name=${TAG}" >> "$GITHUB_OUTPUT"
           echo "prerelease=${PRERELEASE}" >> "$GITHUB_OUTPUT"
 
+      - name: Decide whether to publish this version
+        id: should_release
+        run: |
+          set -euo pipefail
+
+          TAG="${{ steps.metadata.outputs.tag }}"
+
+          if git ls-remote --exit-code --tags origin "refs/tags/${TAG}" >/dev/null 2>&1; then
+            echo "should_release=false" >> "$GITHUB_OUTPUT"
+            echo "Version tag ${TAG} already exists. Skipping release publish steps."
+          else
+            echo "should_release=true" >> "$GITHUB_OUTPUT"
+            echo "Version tag ${TAG} does not exist yet. Proceeding with release publish steps."
+          fi
+
       - name: Get merged pull request details
         id: pr
+        if: ${{ steps.should_release.outputs.should_release == 'true' }}
         uses: actions/github-script@v7
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -63,6 +79,7 @@ jobs:
             core.setOutput('body', mergedPr?.body ?? '');
 
       - name: Generate release notes body
+        if: ${{ steps.should_release.outputs.should_release == 'true' }}
         uses: actions/github-script@v7
         env:
           PR_BODY: ${{ steps.pr.outputs.body }}
@@ -76,24 +93,30 @@ jobs:
             fs.writeFileSync('release_notes.md', body, 'utf8');
 
       - name: Setup Node.js
+        if: ${{ steps.should_release.outputs.should_release == 'true' }}
         uses: actions/setup-node@v4
         with:
           node-version: '20.x'
           cache: 'npm'
 
       - name: Install dependencies
+        if: ${{ steps.should_release.outputs.should_release == 'true' }}
         run: npm ci
 
       - name: Run tests
+        if: ${{ steps.should_release.outputs.should_release == 'true' }}
         run: npm test -- --runInBand
 
       - name: Build
+        if: ${{ steps.should_release.outputs.should_release == 'true' }}
         run: npm run build
 
       - name: Docker smoke test (adapter)
+        if: ${{ steps.should_release.outputs.should_release == 'true' }}
         run: npm run test:docker
 
       - name: Package distribution
+        if: ${{ steps.should_release.outputs.should_release == 'true' }}
         run: |
           mkdir -p dist-release
           cp -r dist/* dist-release/
@@ -109,6 +132,7 @@ jobs:
           zip -r omnitools-mcp-server-${{ steps.metadata.outputs.version }}.zip dist-release/
 
       - name: Create or update GitHub Release
+        if: ${{ steps.should_release.outputs.should_release == 'true' }}
         uses: actions/github-script@v7
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -182,7 +206,7 @@ jobs:
             }
 
       - name: Update latest tag
-        if: ${{ steps.metadata.outputs.prerelease != 'true' }}
+        if: ${{ steps.should_release.outputs.should_release == 'true' && steps.metadata.outputs.prerelease != 'true' }}
         run: |
           set -euo pipefail
           git config user.name "github-actions[bot]"

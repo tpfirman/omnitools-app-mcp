@@ -5,9 +5,3 @@ export interface OmniBackend {
   search(input: unknown, defaultLimit: number): Promise<SearchResult[]>;
   run(input: unknown): Promise<ToolResult>;
 }
-
-export interface AdapterErrorPayload {
-  code: string;
-  message: string;
-  details?: unknown;
-}
