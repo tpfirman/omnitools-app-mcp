@@ -2,7 +2,7 @@
 
 ## Brief Description
 
-Implement GitHub Actions workflows to enforce branch source restrictions, automate semantic releases on merge to `main`, and ensure CI runs correctly on `dev`. Update project documentation to reflect the new branching strategy, ruleset-based protections, and workflow conventions.
+Implement GitHub Actions workflows to enforce branch source restrictions, automate semantic releases on push of a semver tag, and ensure CI runs correctly on `dev`. Update project documentation to reflect the new branching strategy, ruleset-based protections, and workflow conventions.
 
 ## Motivation
 
@@ -39,29 +39,20 @@ A workflow that runs on PRs targeting `main` or `dev` and validates the source b
 
 ---
 
-#### 2. Auto-Release on Merge to Main
+#### 2. Tag-Driven Automated Release
 
-A workflow that triggers on `push` to `main` (i.e., when a PR is merged) and automatically creates a GitHub Release.
+A workflow that triggers on `push` of a semver tag (e.g. `v1.2.3`) and automatically creates a GitHub Release.
 
 **Requirements:**
-- Versioning: semantic (`v1.2.3`) — version must be derived or specified somewhere. Options to decide:
-  - Read version from `package.json` (simplest — update `package.json` as part of the PR)
-  - Parse a version tag from the PR title (e.g. `[v1.2.0] Release description`)
-  - Manually tag the commit before merge and trigger off the tag
-  - **Recommended:** Use `package.json` version as the source of truth — it is already part of the codebase and visible in the PR diff
-- Release name: derived from the PR title
-- Release notes: the body of the merged PR, with the following footer appended automatically:
-
-  ```
-  ---
-  For a full list of changes, see [CHANGELOG.md](./CHANGELOG.md).
-  ```
-
-- Release should be marked as latest
-- Should only trigger on merge to `main`, not on direct pushes (guard with a condition checking `github.event.pull_request.merged == true` or use the `pull_request` closed event with merged filter)
+- Versioning: semantic (`v1.2.3`) — a tag in this format must be pushed to trigger the release
+- Release name: the tag name (e.g. `v1.2.3`)
+- Release notes: extracted from the matching section in `CHANGELOG.md` if present; falls back to `"Release <version>"`; appended automatically by GitHub's release notes generator
+- Pre-release detection: tags containing a hyphen (e.g. `v1.2.3-beta.1`) are marked as pre-release automatically
+- Release should be marked as latest for stable (non-hyphenated) tags; a moving `latest` tag is also force-updated
+- Distribution archives (`.tar.gz` and `.zip`) are built and attached to the release as assets
 
 **Prerequisites:**
-- The workflow requires `contents: write` permission to create releases
+- The workflow requires `contents: write` permission to create releases and update the `latest` tag
 - A `GITHUB_TOKEN` is sufficient — no PAT needed for releases on the same repo
 
 **Suggested workflow file:** `.github/workflows/release.yml`
@@ -125,7 +116,7 @@ Before implementation, confirm the following manually:
 - [ ] Rulesets for `main` and `dev` have been imported and are active (replacing classic branch protection rules)
 - [ ] `CODEOWNERS` file has been committed to the repo root or `.github/` directory
 - [ ] Copilot code review availability confirmed for your GitHub plan — if unavailable, the `Copilot code review` required status check in the `main` ruleset must be removed to avoid permanently blocking PRs
-- [ ] `package.json` has a `version` field — confirm this will be the source of truth for release versioning
+- [ ] `CHANGELOG.md` sections follow the `## [x.y.z]` heading format so release notes are extracted correctly when a tag is pushed
 
 ---
 
@@ -134,7 +125,7 @@ Before implementation, confirm the following manually:
 - [ ] A PR from a disallowed branch into `main` or `dev` fails the source branch check and cannot be merged
 - [ ] A PR from an allowed branch into `main` or `dev` passes the source branch check
 - [ ] CI runs and is required on PRs targeting both `main` and `dev`
-- [ ] Merging a PR into `main` automatically creates a GitHub Release with correct semantic version, PR body as release notes, and CHANGELOG footer
+- [ ] Pushing a semver tag (e.g. `v1.2.3`) automatically creates a GitHub Release with the correct tag name, release notes from `CHANGELOG.md`, and distribution assets attached
 - [ ] Release is marked as latest
 - [ ] `.instructions.md` merge process section no longer references rebase
 - [ ] `README.md` branch protection section references rulesets, not classic rules
@@ -145,7 +136,7 @@ Before implementation, confirm the following manually:
 ## Potential Challenges
 
 - **Hotfix back-merge to dev:** After a hotfix merges to `main`, `dev` will be behind. This needs to either be automated (a workflow that opens a PR from `main` → `dev` after a hotfix merge) or documented as a required manual step. Recommend manual initially, with automation as a follow-up feature.
-- **Version source of truth:** If `package.json` version is not updated as part of the PR, the release will tag the wrong version. A workflow validation step that checks the version has been bumped (i.e., differs from the latest tag) would catch this.
+- **Version source of truth:** The tag itself is the version — the tag pushed to trigger the release must be a valid semver string (e.g. `v1.2.3`). A corresponding section in `CHANGELOG.md` should be prepared before tagging to ensure meaningful release notes are included.
 - **Copilot review availability:** If Copilot code review is not available on the current plan, the required check in the main ruleset will permanently block all PRs. This must be resolved before the ruleset goes live.
 
 ---
