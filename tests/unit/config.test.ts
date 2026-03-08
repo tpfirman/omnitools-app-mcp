@@ -9,6 +9,7 @@ describe('Configuration', () => {
     delete process.env.SEARCH_RESULT_LIMIT;
     delete process.env.OMNI_BACKEND;
     delete process.env.OMNI_ADAPTER_URL;
+    delete process.env.IT_TOOLS_URL;
     delete process.env.ALLOWED_DIRECTORIES;
   });
   
@@ -23,6 +24,7 @@ describe('Configuration', () => {
     expect(config.searchRankingMethod).toBe('keyword');
     expect(config.omniBackend).toBe('local');
     expect(config.omniAdapterUrl).toBe('http://127.0.0.1:8081');
+    expect(config.itToolsUrl).toBe('http://127.0.0.1:8082');
     expect(config.logLevel).toBe('info');
   });
   
@@ -32,6 +34,7 @@ describe('Configuration', () => {
     process.env.SEARCH_RESULT_LIMIT = '20';
     process.env.OMNI_BACKEND = 'adapter';
     process.env.OMNI_ADAPTER_URL = 'http://omni-adapter:8081';
+    process.env.IT_TOOLS_URL = 'http://it-tools-ui:80';
     process.env.ALLOWED_DIRECTORIES = '/tmp,/home/user/workspace';
     process.env.LOG_LEVEL = 'debug';
     
@@ -42,6 +45,7 @@ describe('Configuration', () => {
     expect(config.searchResultLimit).toBe(20);
     expect(config.omniBackend).toBe('adapter');
     expect(config.omniAdapterUrl).toBe('http://omni-adapter:8081');
+    expect(config.itToolsUrl).toBe('http://it-tools-ui:80');
     expect(config.allowedDirectories).toEqual(['/tmp', '/home/user/workspace']);
     expect(config.logLevel).toBe('debug');
   });

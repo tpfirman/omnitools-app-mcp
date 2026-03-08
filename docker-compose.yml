@@ -6,6 +6,13 @@ services:
     ports:
       - "8080:80"
 
+  it-tools-ui:
+    image: ghcr.io/corentinth/it-tools:latest
+    container_name: it-tools-ui
+    restart: unless-stopped
+    ports:
+      - "8082:80"
+
   omni-adapter:
     build:
       context: .
@@ -44,6 +51,7 @@ services:
       ALLOWED_DIRECTORIES: /tmp
       OMNI_BACKEND: adapter
       OMNI_ADAPTER_URL: http://omni-adapter:8081
+      IT_TOOLS_URL: http://it-tools-ui:80
       TOOL_TIMEOUT: 60
       SEARCH_RESULT_LIMIT: 10
     depends_on:

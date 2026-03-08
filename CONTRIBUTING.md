@@ -252,6 +252,12 @@ npm run build
 docker compose up --build
 ```
 
+Expected services:
+- `omni-tools-ui` on `http://localhost:8080`
+- `it-tools-ui` on `http://localhost:8082`
+- `omni-adapter` on `http://localhost:8081`
+- `mcp-server` (STDIO runtime container)
+
 ## CI/CD Pipeline
 
 Our CI/CD runs on:

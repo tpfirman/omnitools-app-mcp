@@ -61,6 +61,7 @@ SEARCH_RESULT_LIMIT=10
 # Backend mode
 OMNI_BACKEND=local
 OMNI_ADAPTER_URL=http://127.0.0.1:8081
+IT_TOOLS_URL=http://127.0.0.1:8082
 
 # Security: whitelist allowed directories
 ALLOWED_DIRECTORIES=/tmp,/home/user/workspace
@@ -88,6 +89,7 @@ docker compose up --build
 
 Services:
 - `omni-tools-ui`: official OmniTools UI at `http://localhost:8080`
+- `it-tools-ui`: official IT-Tools UI at `http://localhost:8082`
 - `omni-adapter`: adapter API at `http://localhost:8081` (`/health`, `/tools/search`, `/tools/run`)
 - `mcp-server`: MCP runtime configured with `OMNI_BACKEND=adapter`
 
@@ -114,6 +116,7 @@ Use user-level MCP settings so no repository artifacts are created.
         "SEARCH_RESULT_LIMIT": "10",
         "OMNI_BACKEND": "local",
         "OMNI_ADAPTER_URL": "http://127.0.0.1:8081",
+        "IT_TOOLS_URL": "http://127.0.0.1:8082",
         "LOG_LEVEL": "info"
       }
     }
@@ -289,6 +292,7 @@ All environment variables with defaults:
 | `SEARCH_RANKING_METHOD` | `keyword` | Ranking algorithm |
 | `OMNI_BACKEND` | `local` | Tool backend mode (`local` or `adapter`) |
 | `OMNI_ADAPTER_URL` | `http://127.0.0.1:8081` | Adapter base URL for `adapter` mode |
+| `IT_TOOLS_URL` | `http://127.0.0.1:8082` | IT-Tools UI base URL for Docker topology and future provider integration |
 | `ALLOWED_DIRECTORIES` | `/tmp` | Comma-separated paths |
 | `LOG_LEVEL` | `info` | Log verbosity level |
 | `LOG_FILE` | `logs/mcp-server.log` | Log file path |
