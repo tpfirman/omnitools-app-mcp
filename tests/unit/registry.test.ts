@@ -41,6 +41,33 @@ describe('ToolRegistry', () => {
     expect((result.data as { result: string }).result).toBe('hello world');
   });
 
+  it('accepts arguments alias for tool input', async () => {
+    const result = await registry.run(
+      {
+        toolName: 'text_uppercase',
+        arguments: { text: 'hello world' },
+      },
+      { config, logger }
+    );
+
+    expect(result.success).toBe(true);
+    expect((result.data as { result: string }).result).toBe('HELLO WORLD');
+  });
+
+  it('prefers args over arguments when both are present', async () => {
+    const result = await registry.run(
+      {
+        toolName: 'text_lowercase',
+        args: { text: 'FROM ARGS' },
+        arguments: { text: 'FROM ARGUMENTS' },
+      },
+      { config, logger }
+    );
+
+    expect(result.success).toBe(true);
+    expect((result.data as { result: string }).result).toBe('from args');
+  });
+
   it('returns helpful error for unknown tool', async () => {
     const result = await registry.run(
       {

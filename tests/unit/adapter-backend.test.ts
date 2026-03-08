@@ -96,4 +96,40 @@ describe('AdapterOmniBackend', () => {
     expect(result.success).toBe(false);
     expect(result.message).toContain('Adapter transport failure');
   });
+
+  it('normalizes arguments alias to args before adapter run request', async () => {
+    const fetchMock = jest
+      .spyOn(globalThis, 'fetch')
+      .mockResolvedValue(
+        new Response(
+          JSON.stringify({
+            success: true,
+            message: 'ok',
+            data: { result: 'HELLO' },
+          }),
+          {
+            status: 200,
+            headers: { 'content-type': 'application/json' },
+          }
+        )
+      );
+
+    const backend = new AdapterOmniBackend(config, new Logger(config));
+    const result = await backend.run({
+      toolName: 'text_uppercase',
+      arguments: { text: 'hello' },
+    });
+
+    expect(result.success).toBe(true);
+    expect(fetchMock).toHaveBeenCalledWith(
+      'http://127.0.0.1:8081/tools/run',
+      expect.objectContaining({
+        method: 'POST',
+        body: JSON.stringify({
+          toolName: 'text_uppercase',
+          args: { text: 'hello' },
+        }),
+      })
+    );
+  });
 });

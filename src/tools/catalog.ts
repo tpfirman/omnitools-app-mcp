@@ -5,7 +5,7 @@ export function buildCatalogResource(
   return JSON.stringify(
     {
       summary:
-        'OmniTools MCP catalog. Use omni_search to discover a tool, then omni_run with toolName and args.',
+        'OmniTools MCP catalog. Use omni_search to discover a tool, then omni_run with toolName and args (or arguments alias).',
       backendMode,
       tools,
     },

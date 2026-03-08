@@ -69,12 +69,13 @@ export class OmniToolsServer {
           },
           {
             name: 'omni_run',
-            description: 'Run a specific OmniTools capability by tool name and arguments',
+            description: 'Run a specific OmniTools capability by tool name and args (arguments alias supported)',
             inputSchema: {
               type: 'object',
               properties: {
                 toolName: { type: 'string', description: 'Tool to execute' },
-                args: { type: 'object', description: 'Tool arguments' },
+                args: { type: 'object', description: 'Tool arguments (canonical)' },
+                arguments: { type: 'object', description: 'Alias for args for compatibility' },
               },
               required: ['toolName'],
             },
