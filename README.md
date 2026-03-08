@@ -6,7 +6,7 @@ A Model Context Protocol (MCP) server that provides AI agents access to self-hos
 
 - **Dynamic Tool Discovery**: Search-based tool discovery instead of loading 100+ schemas
 - **Dispatcher Runtime**: `omni_search` + `omni_run` for low-token tool invocation
-- **Core Tool Set (14 tools)**: Text, data, file, media, and PDF document operations
+- **Core Tool Set (16 tools)**: Text, data, file, media, and PDF document operations
 - **Token Optimization**: Specialized catalog resources keep prompt windows lean
 - **Multiple Platform Support**: Compatible with Claude Desktop, GitHub Copilot, Google Gemini, LM Studio, Relevance AI, and N8N
 - **Security First**: Whitelist-based file access and path sanitization
@@ -24,7 +24,7 @@ A Model Context Protocol (MCP) server that provides AI agents access to self-hos
 
 ```bash
 # Clone the repository
-git clone <repository-url>
+git clone https://github.com/tpfirman/omnitools-app-mcp.git
 cd omnitools-app-mcp
 
 # Run automated setup
@@ -147,6 +147,7 @@ Instead of exposing 100+ individual tool schemas, we use:
 - **`omni_search`**: Natural language search for capabilities
 - **`omni_run`**: Single execution endpoint with tool name + parameters
 - **`omnitools://catalog`**: Resource containing available tools and schemas
+- **`omnitools://config`**: Resource containing current server configuration
 
 This keeps the LLM context lean while providing full functionality.
 
@@ -167,9 +168,9 @@ omnitools-app-mcp/
 ├── tests/
 │   ├── unit/              # Unit tests
 │   └── integration/       # Integration tests
-├── examples/              # Usage examples
 ├── scripts/               # Setup and build scripts
 ├── docs/                  # Documentation
+│   └── examples/          # Usage examples
 └── .instructions.md       # AI agent guidelines
 ```
 
@@ -263,7 +264,7 @@ feature/*, bugfix/*, hotfix/* (working branches from main)
   - Logging system and setup automation script
 
 - ✅ **Phase 2: Core Porting**
-  - 14 core tools implemented across text, data, file, media, and document categories
+  - 16 tools implemented across text, data, file, media, and document categories
   - Includes CSV-to-JSON, JSON utilities, hashing, file IO, and PDF operations
 
 - ✅ **Phase 3: Media Integration**
