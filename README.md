@@ -365,7 +365,7 @@ This project builds an MCP server layer around OmniTools to make those utilities
 - [OmniTools GitHub](https://github.com/iib0011/omni-tools)
 - [MCP Specification](https://modelcontextprotocol.io/)
 - [Project Plan](docs/plans/initial-plan.md)
-- [Publishing Workflow Idea](docs/plans/complete/feature-publishing-workflow.md)
+- [Publishing Workflow](docs/plans/complete/feature-publishing-workflow.md)
 
 ## Support
 
