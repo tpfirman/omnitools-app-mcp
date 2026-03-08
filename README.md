@@ -62,7 +62,7 @@ MAX_FILE_SIZE=52428800  # 50 MB
 SEARCH_RESULT_LIMIT=10
 
 # Security: whitelist allowed directories
-ALLOWED_DIRECTORIES=/tmp,workspace/
+ALLOWED_DIRECTORIES=/tmp,/home/user/workspace
 
 # Logging
 LOG_LEVEL=info
@@ -107,7 +107,7 @@ Use user-level MCP settings so no repository artifacts are created.
 }
 ```
 
-3. Save `settings.json` and reload VS Code.
+3. Save `mcp.json` and reload VS Code.
 
 Quick verification:
 - Run an MCP tool listing command from your MCP client in VS Code

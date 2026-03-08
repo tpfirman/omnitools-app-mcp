@@ -96,7 +96,7 @@ export class OmniToolsServer {
       const { name, arguments: args } = request.params;
 
       if (name === 'ping') {
-        const message = (args as { message?: string }).message || 'No message provided';
+        const message = (args as { message: string }).message;
         return {
           content: [{ type: 'text', text: `Pong! You said: ${message}` }],
         };

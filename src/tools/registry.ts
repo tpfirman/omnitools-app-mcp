@@ -114,22 +114,16 @@ export class ToolRegistry {
 
 function zodSchemaToJson(schema: z.ZodTypeAny): Record<string, unknown> {
   if (schema instanceof z.ZodObject) {
-    const shape = schema.shape;
+    const shape = schema.shape as Record<string, z.ZodTypeAny>;
     const properties: Record<string, unknown> = {};
     const required: string[] = [];
 
     Object.entries(shape).forEach(([key, value]) => {
-      if (value instanceof z.ZodString) {
-        properties[key] = { type: 'string' };
+      const isOptional = value instanceof z.ZodOptional || value instanceof z.ZodDefault;
+      properties[key] = zodTypeToJson(value);
+
+      if (!isOptional) {
         required.push(key);
-      } else if (value instanceof z.ZodNumber) {
-        properties[key] = { type: 'number' };
-        required.push(key);
-      } else if (value instanceof z.ZodBoolean) {
-        properties[key] = { type: 'boolean' };
-        required.push(key);
-      } else {
-        properties[key] = { type: 'string' };
       }
     });
 
@@ -141,4 +135,49 @@ function zodSchemaToJson(schema: z.ZodTypeAny): Record<string, unknown> {
   }
 
   return { type: 'object' };
+}
+
+function zodTypeToJson(type: z.ZodTypeAny): Record<string, unknown> {
+  if (type instanceof z.ZodOptional || type instanceof z.ZodDefault) {
+    return zodTypeToJson(type._def.innerType);
+  }
+
+  if (type instanceof z.ZodArray) {
+    return {
+      type: 'array',
+      items: zodTypeToJson(type._def.type),
+    };
+  }
+
+  if (type instanceof z.ZodEnum) {
+    return {
+      type: 'string',
+      enum: type.options,
+    };
+  }
+
+  if (type instanceof z.ZodString) {
+    return { type: 'string' };
+  }
+
+  if (type instanceof z.ZodNumber) {
+    return { type: 'number' };
+  }
+
+  if (type instanceof z.ZodBoolean) {
+    return { type: 'boolean' };
+  }
+
+  if (type instanceof z.ZodRecord) {
+    return {
+      type: 'object',
+      additionalProperties: true,
+    };
+  }
+
+  if (type instanceof z.ZodObject) {
+    return zodSchemaToJson(type);
+  }
+
+  return { type: 'string' };
 }
