@@ -21,6 +21,7 @@ const config: Config = {
 describe('AdapterOmniBackend', () => {
   beforeEach(() => {
     jest.restoreAllMocks();
+    jest.spyOn(console, 'error').mockImplementation(() => {});
   });
 
   it('delegates omni_search through adapter endpoint', async () => {
