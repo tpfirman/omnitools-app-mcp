@@ -163,4 +163,4 @@ Before implementation, confirm the following manually:
 
 ## Status
 
-Planning → Ready for Implementation
+Complete
