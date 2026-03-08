@@ -1,0 +1,44 @@
+name: Branch Source Check
+
+on:
+  pull_request:
+    branches:
+      - main
+      - dev
+
+permissions:
+  contents: read
+
+jobs:
+  validate-source-branch:
+    name: Branch Source Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate source branch for target
+        run: |
+          set -euo pipefail
+
+          BASE="${{ github.base_ref }}"
+          HEAD="${{ github.head_ref }}"
+
+          echo "Validating PR source '${HEAD}' -> target '${BASE}'"
+
+          if [[ "${BASE}" == "main" ]]; then
+            if [[ "${HEAD}" == "dev" || "${HEAD}" == hotfix/* ]]; then
+              echo "OK: main accepts dev and hotfix/*"
+              exit 0
+            fi
+            echo "ERROR: PRs into main must come from 'dev' or 'hotfix/*'."
+            exit 1
+          fi
+
+          if [[ "${BASE}" == "dev" ]]; then
+            if [[ "${HEAD}" == feature/* || "${HEAD}" == bugfix/* || "${HEAD}" == hotfix/* ]]; then
+              echo "OK: dev accepts feature/*, bugfix/*, and hotfix/*"
+              exit 0
+            fi
+            echo "ERROR: PRs into dev must come from 'feature/*', 'bugfix/*', or 'hotfix/*'."
+            exit 1
+          fi
+
+          echo "No restrictions configured for target branch '${BASE}'."
