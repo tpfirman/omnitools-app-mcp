@@ -312,7 +312,7 @@ Since GitHub MCP tools don't currently support branch protection API, these must
      - ✅ Dismiss stale reviews when new commits are pushed
    - ✅ **Require status checks to pass before merging**
      - ✅ Require branches to be up to date before merging
-     - Status checks: `Lint, Test, Build (20.x)`
+     - Status checks: `Lint, Test, Build (Node 20)`
    - ✅ **Do not allow bypassing the above settings**
    - ✅ **Restrict who can push to matching branches** (optional - maintainers only)
 4. Click **Create** or **Save changes**
@@ -324,7 +324,7 @@ Since GitHub MCP tools don't currently support branch protection API, these must
 3. Configure:
    - **Branch name pattern:** `dev`
    - ✅ **Require status checks to pass before merging**
-     - Status checks: `Lint, Test, Build (20.x)`
+     - Status checks: `Lint, Test, Build (Node 20)`
    - ✅ **Require linear history** (optional - prevents merge commits)
 4. Click **Create**
 

@@ -35,7 +35,7 @@ function loadEnvVars(): Record<string, string> {
       if (line && !line.startsWith('#')) {
         const [key, ...valueParts] = line.split('=');
         if (key && valueParts.length > 0) {
-          env[key.trim()] = valueParts.join('=').trim();
+          env[key.trim()] = parseEnvValue(valueParts.join('='));
         }
       }
     });
@@ -53,6 +53,20 @@ function loadEnvVars(): Record<string, string> {
   }, {} as Record<string, string>);
   
   return { ...env, ...processEnv };
+}
+
+function parseEnvValue(rawValue: string): string {
+  const trimmed = rawValue.trim();
+
+  if (
+    (trimmed.startsWith('"') && trimmed.endsWith('"')) ||
+    (trimmed.startsWith("'") && trimmed.endsWith("'"))
+  ) {
+    return trimmed.slice(1, -1);
+  }
+
+  // Strip inline comments in .env templates: VALUE  # comment
+  return trimmed.replace(/\s+#.*$/, '').trim();
 }
 
 /**

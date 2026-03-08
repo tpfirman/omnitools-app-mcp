@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import type { ToolDefinition } from './types.js';
-import { parseSimpleCsv } from './utils.js';
+import { parseCsvLine, parseSimpleCsv } from './utils.js';
 
 const jsonValidateSchema = z.object({ input: z.string() });
 const jsonFormatSchema = z.object({ input: z.string(), indent: z.number().int().min(0).max(8).default(2) });
@@ -80,8 +80,7 @@ export const dataTools: ToolDefinition[] = [
     execute: async (input) => {
       const { csv } = csvHeadersSchema.parse(input);
       const firstLine = csv.split(/\r?\n/).find((line) => line.trim().length > 0) ?? '';
-      const headers = firstLine
-        .split(',')
+      const headers = parseCsvLine(firstLine)
         .map((value) => value.trim().replace(/^"|"$/g, ''))
         .filter((value) => value.length > 0);
       return {

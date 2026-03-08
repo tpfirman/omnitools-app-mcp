@@ -68,4 +68,56 @@ describe('ToolRegistry', () => {
     expect(data.rows[0].name).toBe('Alice');
     expect(data.rows[1].age).toBe('25');
   });
+
+  it('extracts CSV headers with quoted commas', async () => {
+    const csv = '"first,name",age\n"Alice",30';
+    const result = await registry.run(
+      {
+        toolName: 'csv_headers',
+        args: { csv },
+      },
+      { config, logger }
+    );
+
+    expect(result.success).toBe(true);
+    const data = result.data as { headers: string[]; count: number };
+    expect(data.headers).toEqual(['first,name', 'age']);
+    expect(data.count).toBe(2);
+  });
+
+  it('exposes accurate catalog schema for optional, default, and array inputs', () => {
+    const catalog = registry.getCatalog();
+
+    const pdfExtractText = catalog.find((tool) => tool.name === 'pdf_extract_text');
+    const jsonFormat = catalog.find((tool) => tool.name === 'json_format');
+    const pdfMerge = catalog.find((tool) => tool.name === 'pdf_merge');
+
+    expect(pdfExtractText).toBeDefined();
+    expect(jsonFormat).toBeDefined();
+    expect(pdfMerge).toBeDefined();
+
+    const extractSchema = pdfExtractText?.inputSchema as {
+      properties: Record<string, { type: string }>;
+      required: string[];
+    };
+    expect(extractSchema.properties.inputPath.type).toBe('string');
+    expect(extractSchema.properties.outputPath.type).toBe('string');
+    expect(extractSchema.required).toContain('inputPath');
+    expect(extractSchema.required).not.toContain('outputPath');
+
+    const jsonSchema = jsonFormat?.inputSchema as {
+      properties: Record<string, { type: string }>;
+      required: string[];
+    };
+    expect(jsonSchema.properties.indent.type).toBe('number');
+    expect(jsonSchema.required).not.toContain('indent');
+
+    const mergeSchema = pdfMerge?.inputSchema as {
+      properties: Record<string, { type: string; items?: { type: string } }>;
+      required: string[];
+    };
+    expect(mergeSchema.properties.inputPaths.type).toBe('array');
+    expect(mergeSchema.properties.inputPaths.items?.type).toBe('string');
+    expect(mergeSchema.required).toContain('inputPaths');
+  });
 });
