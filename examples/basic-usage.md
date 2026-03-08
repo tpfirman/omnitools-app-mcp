@@ -22,16 +22,49 @@ You can test the server using the MCP Inspector tool:
 npx @modelcontextprotocol/inspector node dist/index.js
 ```
 
-## Testing the Ping Tool
+## Dispatcher Workflow (`omni_search` + `omni_run`)
 
-The server includes a basic `ping` tool for connectivity testing.
-
-### Example MCP Call (JSON-RPC format)
+### 1. Search for a capability
 
 ```json
 {
   "jsonrpc": "2.0",
   "id": 1,
+  "method": "tools/call",
+  "params": {
+    "name": "omni_search",
+    "arguments": {
+      "query": "convert csv to json"
+    }
+  }
+}
+```
+
+### 2. Run the selected tool
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 2,
+  "method": "tools/call",
+  "params": {
+    "name": "omni_run",
+    "arguments": {
+      "toolName": "csv_to_json",
+      "args": {
+        "csv": "name,age\nAlice,30\nBob,25"
+      }
+    }
+  }
+}
+```
+
+### 3. Optional ping connectivity test
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 3,
   "method": "tools/call",
   "params": {
     "name": "ping",
@@ -42,24 +75,7 @@ The server includes a basic `ping` tool for connectivity testing.
 }
 ```
 
-### Expected Response
-
-```json
-{
-  "jsonrpc": "2.0",
-  "id": 1,
-  "result": {
-    "content": [
-      {
-        "type": "text",
-        "text": "Pong! You said: Hello, OmniTools!"
-      }
-    ]
-  }
-}
-```
-
-## Reading Server Configuration
+## Reading Server Configuration and Catalog
 
 You can read the server configuration via the `omnitools://config` resource:
 
@@ -74,7 +90,20 @@ You can read the server configuration via the `omnitools://config` resource:
 }
 ```
 
-This will return the current server configuration including timeouts, file limits, and allowed directories.
+This returns current server configuration including timeouts, file limits, and allowed directories.
+
+You can also read the tool catalog resource:
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 3,
+  "method": "resources/read",
+  "params": {
+    "uri": "omnitools://catalog"
+  }
+}
+```
 
 ## Using with Claude Desktop
 

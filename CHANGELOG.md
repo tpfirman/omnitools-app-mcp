@@ -8,22 +8,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-- Initial project structure
-- MCP SDK integration with STDIO transport
-- Configuration management with Zod validation
-- Environment variable support (.env)
-- Startup validation (Node.js 20+, FFmpeg)
-- Logging system with file and console output
-- Basic ping tool for connectivity testing
-- Automated setup script
-- Unit tests for configuration
-- Project documentation (README, instructions, plans)
+- Dispatcher tool architecture with `omni_search` and `omni_run`
+- Tool catalog MCP resource: `omnitools://catalog`
+- Core tool registry with ranked keyword search
+- 14 tools across text, data, file, document, and media categories
+- FFmpeg/ffprobe media wrappers (metadata + audio extraction)
+- PDF document wrappers (text extraction + merge via system tools)
+- Unit tests for tool registry search and execution paths
+- Automated release workflow (`.github/workflows/release.yml`)
+- Comprehensive contributing guidelines (`CONTRIBUTING.md`)
+- Branch protection setup documentation
+- Trunk-based development workflow with `main`, `dev`, and feature branches
 
-### Phase 1 Complete ✓
-- Base server skeleton
-- Tool and resource handlers
-- Graceful shutdown handling
-- Development and build scripts
+### Updated
+- README and usage examples for dispatcher-first workflow
+- Server handlers now route through registry-based execution
+- Git workflow documentation with detailed branching strategy
+- Release process now automated via GitHub Actions on version tags
+- Publishing workflow feature plan marked complete
+
+### Completed
+- Phase 1: Base server foundation
+- Phase 2: Core tool porting and wrappers
+- Phase 3: Media integration baseline
+- Phase 4: Dynamic dispatcher implementation
+- Phase 5: In progress (client-specific validation remains)
+- Automated release and workflow infrastructure
 
 ## [0.1.0] - 2026-03-07
 

@@ -5,6 +5,8 @@ A Model Context Protocol (MCP) server that provides AI agents access to self-hos
 ## Features
 
 - **Dynamic Tool Discovery**: Search-based tool discovery instead of loading 100+ schemas
+- **Dispatcher Runtime**: `omni_search` + `omni_run` for low-token tool invocation
+- **Core Tool Set (14 tools)**: Text, data, file, media, and PDF document operations
 - **Token Optimization**: Specialized catalog resources keep prompt windows lean
 - **Multiple Platform Support**: Compatible with Claude Desktop, GitHub Copilot, Google Gemini, LM Studio, Relevance AI, and N8N
 - **Security First**: Whitelist-based file access and path sanitization
@@ -77,6 +79,41 @@ npm start
 npm run dev
 ```
 
+### 4. Add MCP Server to VS Code (User Scope)
+
+Use user-level MCP settings so no repository artifacts are created.
+
+1. Open your VS Code **User** settings JSON file:
+  - Linux: `~/.config/Code/User/mcp.json`
+  - macOS: `~/Library/Application Support/Code/User/mcp.json`
+  - Windows: `%APPDATA%\\Code\\User\\mcp.json`
+2. Add this server configuration under `mcpServers`:
+
+```json
+{
+  "mcpServers": {
+    "omnitools": {
+      "command": "node",
+      "args": ["/absolute/path/to/omnitools-app-mcp/dist/index.js"],
+      "env": {
+        "ALLOWED_DIRECTORIES": "/tmp,/home/user/workspace",
+        "TOOL_TIMEOUT": "60",
+        "MAX_FILE_SIZE": "52428800",
+        "SEARCH_RESULT_LIMIT": "10",
+        "LOG_LEVEL": "info"
+      }
+    }
+  }
+}
+```
+
+3. Save `mcp.json` and reload VS Code.
+
+Quick verification:
+- Run an MCP tool listing command from your MCP client in VS Code
+- Confirm `omni_search` and `omni_run` are available
+- Check `logs/mcp-server.log` if startup fails
+
 ## Architecture
 
 The server follows a modular architecture:
@@ -91,6 +128,7 @@ Instead of exposing 100+ individual tool schemas, we use:
 
 - **`omni_search`**: Natural language search for capabilities
 - **`omni_run`**: Single execution endpoint with tool name + parameters
+- **`omnitools://catalog`**: Resource containing available tools and schemas
 
 This keeps the LLM context lean while providing full functionality.
 
@@ -166,26 +204,67 @@ npm run submodules:update:remote
 
 ## Git Workflow
 
-This project follows a structured Git workflow with conventional commits:
+This project follows a **trunk-based development** workflow:
 
-- **Branches**: `main`, `dev`, `feature/*`, `bugfix/*`, `hotfix/*`
-- **Commits**: `feat:`, `fix:`, `chore:`, `docs:`, `test:`, `refactor:`
+```
+main (production) ← PR from dev when ready to release
+  ↑
+dev (integration) ← PR from all feature branches
+  ↑
+feature/*, bugfix/*, hotfix/* (working branches from main)
+```
 
-See [`.instructions.md`](.instructions.md) for complete guidelines.
+### Quick Reference
 
-## Phase 1 Status ✓
+1. **Keep local branches synced:**
+   ```bash
+   git checkout main && git pull origin main
+   git checkout dev && git pull origin dev
+   ```
 
-Phase 1 (Base Server) is complete:
+2. **Create branches from `main`:**
+   ```bash
+   git checkout main
+   git checkout -b feature/my-feature
+   ```
 
-- ✅ MCP SDK integration
-- ✅ Basic server skeleton with STDIO transport
-- ✅ Configuration management with Zod validation
-- ✅ Startup validation (Node version, FFmpeg)
-- ✅ Logging system
-- ✅ Basic connectivity test (ping tool)
-- ✅ Setup automation script
+3. **Open PR to `dev`** (not `main`) when feature is complete
 
-**Next**: Phase 2 will add 10-15 core tools (text, document, utilities).
+4. **Release process:** When ready, PR `dev` → `main`, then create version tag:
+   ```bash
+   git tag -a v1.0.0 -m "Release v1.0.0"
+   git push origin v1.0.0
+   ```
+
+**For detailed workflow instructions, see [CONTRIBUTING.md](CONTRIBUTING.md)**
+
+## Implementation Status
+
+### Completed
+
+- ✅ **Phase 1: Base Server**
+  - MCP SDK integration with STDIO transport
+  - Configuration management with Zod validation
+  - Startup validation (Node version, FFmpeg)
+  - Logging system and setup automation script
+
+- ✅ **Phase 2: Core Porting**
+  - 14 core tools implemented across text, data, file, media, and document categories
+  - Includes CSV-to-JSON, JSON utilities, hashing, file IO, and PDF operations
+
+- ✅ **Phase 3: Media Integration**
+  - FFmpeg/ffprobe wrappers for media metadata and audio extraction
+
+- ✅ **Phase 4: Dynamic Dispatcher**
+  - `omni_search` tool with ranked keyword matching
+  - `omni_run` tool with schema-validated execution
+  - `omnitools://catalog` MCP resource for tool discovery
+
+### Remaining
+
+- ⏳ **Phase 5: Client Validation**
+  - End-to-end validation with Claude Desktop, LM Studio, and other MCP clients
+  - Broader regression coverage for external integrations
 
 ## Configuration Reference
 
@@ -230,18 +309,53 @@ The server uses STDIO transport (not network ports). Ensure your MCP client is c
 
 ## Contributing
 
-1. Follow the guidelines in [`.instructions.md`](.instructions.md)
-2. Use conventional commits
-3. Write tests for new features
-4. Update documentation
+We welcome contributions! Please follow these guidelines:
 
-## Publishing (Idea)
+1. **Read [CONTRIBUTING.md](CONTRIBUTING.md)** for detailed workflow
+2. **Branch from `main`** and PR into `dev`
+3. **Use conventional commits** (`feat:`, `fix:`, `docs:`, etc.)
+4. **Write tests** for new features
+5. **Update documentation** as needed
+6. **Ensure CI passes** before requesting review
 
-Publishing is currently handled manually.
+## Releases
 
-- A future publishing workflow is tracked in `docs/plans/features/feature-publishing-workflow.md`
-- No release tag automation is planned yet
-- Git merge/push/release operations remain human-driven
+Releases are automated via GitHub Actions:
+
+1. **Development:** Feature branches → `dev` via PR
+2. **Release preparation:** `dev` → `main` via PR
+3. **Auto release on merge:** Merging a PR into `main` creates a GitHub Release automatically
+4. **Optional semantic release:** Push a version tag (e.g., `v1.0.0`) for a semver-named release
+
+### Creating a Release Automatically
+
+No manual step is required beyond merging a PR into `main`.
+
+When a PR into `main` is merged, `.github/workflows/release.yml` will:
+- Build and test
+- Package artifacts
+- Create a GitHub Release for the merge commit
+
+### Creating a Semantic Version Release (Optional)
+
+```bash
+# After merging dev into main
+git checkout main
+git pull origin main
+
+# Create annotated tag
+git tag -a v1.0.0 -m "Release v1.0.0"
+
+# Push tag to trigger release workflow
+git push origin v1.0.0
+```
+
+The release workflow (`.github/workflows/release.yml`) automatically:
+- ✅ Runs full test suite
+- ✅ Builds production bundle
+- ✅ Creates GitHub Release with notes
+- ✅ Attaches distribution artifacts (.tar.gz and .zip)
+- ✅ Updates `latest` tag (semantic tags only)
 
 ## License
 

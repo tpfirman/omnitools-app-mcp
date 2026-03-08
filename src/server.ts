@@ -8,6 +8,8 @@ import {
 } from '@modelcontextprotocol/sdk/types.js';
 import type { Config } from './config.js';
 import type { Logger } from './utils/logger.js';
+import { ToolRegistry } from './tools/registry.js';
+import { buildCatalogResource } from './tools/catalog.js';
 
 /**
  * OmniTools MCP Server
@@ -16,11 +18,13 @@ export class OmniToolsServer {
   private server: Server;
   private config: Config;
   private logger: Logger;
-  
+  private registry: ToolRegistry;
+
   constructor(config: Config, logger: Logger) {
     this.config = config;
     this.logger = logger;
-    
+    this.registry = new ToolRegistry();
+
     this.server = new Server(
       {
         name: 'omnitools-mcp-server',
@@ -33,17 +37,41 @@ export class OmniToolsServer {
         },
       }
     );
-    
+
     this.setupHandlers();
   }
-  
+
   private setupHandlers(): void {
-    // List available tools
     this.server.setRequestHandler(ListToolsRequestSchema, async () => {
       this.logger.debug('Received ListTools request');
-      
+
       return {
         tools: [
+          {
+            name: 'omni_search',
+            description: 'Search available OmniTools capabilities by natural language query',
+            inputSchema: {
+              type: 'object',
+              properties: {
+                query: { type: 'string', description: 'What capability you need' },
+                limit: { type: 'number', description: 'Optional result count override' },
+                category: { type: 'string', description: 'Optional category filter' },
+              },
+              required: ['query'],
+            },
+          },
+          {
+            name: 'omni_run',
+            description: 'Run a specific OmniTools capability by tool name and arguments',
+            inputSchema: {
+              type: 'object',
+              properties: {
+                toolName: { type: 'string', description: 'Tool to execute' },
+                args: { type: 'object', description: 'Tool arguments' },
+              },
+              required: ['toolName'],
+            },
+          },
           {
             name: 'ping',
             description: 'Simple connectivity test tool',
@@ -61,32 +89,77 @@ export class OmniToolsServer {
         ],
       };
     });
-    
-    // Handle tool calls
+
     this.server.setRequestHandler(CallToolRequestSchema, async (request) => {
       this.logger.debug('Received CallTool request', { tool: request.params.name });
-      
+
       const { name, arguments: args } = request.params;
-      
+
       if (name === 'ping') {
-        const message = (args as { message?: string }).message || 'No message provided';
+        const message = (args as { message: string }).message;
         return {
+          content: [{ type: 'text', text: `Pong! You said: ${message}` }],
+        };
+      }
+
+      if (name === 'omni_search') {
+        try {
+          const results = this.registry.search(args ?? {}, this.config.searchResultLimit);
+          return {
+            content: [
+              {
+                type: 'text',
+                text: JSON.stringify(
+                  {
+                    query: (args as { query?: string } | undefined)?.query ?? '',
+                    count: results.length,
+                    results,
+                  },
+                  null,
+                  2
+                ),
+              },
+            ],
+          };
+        } catch (error) {
+          return {
+            isError: true,
+            content: [
+              {
+                type: 'text',
+                text: `Search failed: ${error instanceof Error ? error.message : String(error)}`,
+              },
+            ],
+          };
+        }
+      }
+
+      if (name === 'omni_run') {
+        const result = await this.registry.run(args ?? {}, {
+          config: this.config,
+          logger: this.logger,
+        });
+
+        return {
+          isError: !result.success,
           content: [
             {
               type: 'text',
-              text: `Pong! You said: ${message}`,
+              text: JSON.stringify(result, null, 2),
             },
           ],
         };
       }
-      
-      throw new Error(`Unknown tool: ${name}`);
+
+      return {
+        isError: true,
+        content: [{ type: 'text', text: `Unknown tool: ${name}` }],
+      };
     });
-    
-    // List available resources
+
     this.server.setRequestHandler(ListResourcesRequestSchema, async () => {
       this.logger.debug('Received ListResources request');
-      
+
       return {
         resources: [
           {
@@ -95,16 +168,21 @@ export class OmniToolsServer {
             description: 'Current server configuration and settings',
             mimeType: 'application/json',
           },
+          {
+            uri: 'omnitools://catalog',
+            name: 'Tools Catalog',
+            description: 'Available tools and schemas for omni_search/omni_run',
+            mimeType: 'application/json',
+          },
         ],
       };
     });
-    
-    // Read resource
+
     this.server.setRequestHandler(ReadResourceRequestSchema, async (request) => {
       this.logger.debug('Received ReadResource request', { uri: request.params.uri });
-      
+
       const { uri } = request.params;
-      
+
       if (uri === 'omnitools://config') {
         return {
           contents: [
@@ -127,8 +205,28 @@ export class OmniToolsServer {
           ],
         };
       }
-      
-      throw new Error(`Unknown resource: ${uri}`);
+
+      if (uri === 'omnitools://catalog') {
+        return {
+          contents: [
+            {
+              uri,
+              mimeType: 'application/json',
+              text: buildCatalogResource(this.registry),
+            },
+          ],
+        };
+      }
+
+      return {
+        contents: [
+          {
+            uri,
+            mimeType: 'text/plain',
+            text: `Unknown resource: ${uri}`,
+          },
+        ],
+      };
     });
   }
   
