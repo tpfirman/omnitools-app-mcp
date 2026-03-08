@@ -10,6 +10,7 @@ const config: Config = {
   searchRankingMethod: 'keyword',
   omniBackend: 'local',
   omniAdapterUrl: 'http://127.0.0.1:8081',
+  itToolsUrl: 'http://127.0.0.1:8082',
   allowedDirectories: ['/tmp'],
   logLevel: 'error',
   logFile: 'logs/test.log',

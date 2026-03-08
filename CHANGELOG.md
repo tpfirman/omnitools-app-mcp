@@ -19,13 +19,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Comprehensive contributing guidelines (`CONTRIBUTING.md`)
 - Branch protection setup documentation
 - Trunk-based development workflow with `main`, `dev`, and feature branches
+- GitHub Actions workflow contract tests for CI, branch source checks, and release automation
+- IT-Tools Docker service (`it-tools-ui`) added to compose topology on `localhost:8082`
+- Docker compose topology unit test coverage (`tests/unit/docker-compose.test.ts`)
 
 ### Updated
 - README and usage examples for dispatcher-first workflow
 - Server handlers now route through registry-based execution
 - Git workflow documentation with detailed branching strategy
-- Release process now automated via GitHub Actions on version tags
+- Release process now automated on merges to `main` using `package.json` semantic version and PR-body notes
 - Publishing workflow feature plan marked complete
+- Branch protection documentation now references repository rulesets
+- Docker smoke test now validates both `omni-adapter` and `it-tools-ui` availability
 
 ### Completed
 - Phase 1: Base server foundation
