@@ -379,7 +379,7 @@ This project builds an MCP server layer around OmniTools to make those utilities
 - [OmniTools](https://omnitools.app/)
 - [OmniTools GitHub](https://github.com/iib0011/omni-tools)
 - [MCP Specification](https://modelcontextprotocol.io/)
-- [Project Plan](docs/plans/initial-plan.md)
+- [Project Plan](docs/initial-plan.md)
 
 ## Support
 
