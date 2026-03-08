@@ -3,26 +3,27 @@
 import { execSync } from 'node:child_process';
 
 const adapterUrl = 'http://127.0.0.1:8081';
+const itToolsUrl = 'http://127.0.0.1:8082';
 
 function run(command) {
   execSync(command, { stdio: 'inherit' });
 }
 
-async function waitForHealth(timeoutMs = 60000) {
+async function waitForHealth(url, timeoutMs = 60000) {
   const start = Date.now();
   while (Date.now() - start < timeoutMs) {
     try {
-      const res = await fetch(`${adapterUrl}/health`);
+      const res = await fetch(url);
       if (res.ok) {
         return;
       }
     } catch {
-      // Adapter may not be ready yet.
+      // Service may not be ready yet.
     }
     await new Promise((resolve) => setTimeout(resolve, 1000));
   }
 
-  throw new Error('Timed out waiting for adapter health endpoint');
+  throw new Error(`Timed out waiting for service health endpoint: ${url}`);
 }
 
 async function post(path, payload) {
@@ -38,8 +39,9 @@ async function post(path, payload) {
 
 async function main() {
   try {
-    run('docker compose up -d --build omni-adapter');
-    await waitForHealth();
+    run('docker compose up -d --build omni-adapter it-tools-ui');
+    await waitForHealth(`${adapterUrl}/health`);
+    await waitForHealth(itToolsUrl);
 
     const search = await post('/tools/search', { query: 'uppercase text', limit: 5 });
     if (!search.res.ok || !Array.isArray(search.body.results) || search.body.results.length === 0) {
@@ -60,7 +62,12 @@ async function main() {
       throw new Error(`Unexpected tool output: ${resultText}`);
     }
 
-    console.log('Docker smoke test passed');
+    const itToolsResponse = await fetch(itToolsUrl);
+    if (!itToolsResponse.ok) {
+      throw new Error(`IT-Tools container unavailable: HTTP ${itToolsResponse.status}`);
+    }
+
+    console.log('Docker smoke test passed (adapter + IT-Tools)');
   } finally {
     run('docker compose down');
   }

@@ -220,6 +220,7 @@ export class OmniToolsServer {
                   searchRankingMethod: this.config.searchRankingMethod,
                   omniBackend: this.config.omniBackend,
                   omniAdapterUrl: this.config.omniAdapterUrl,
+                  itToolsUrl: this.config.itToolsUrl,
                   allowedDirectories: this.config.allowedDirectories,
                   logLevel: this.config.logLevel,
                 },

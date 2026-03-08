@@ -12,6 +12,7 @@ const ConfigSchema = z.object({
   searchRankingMethod: z.enum(['keyword', 'semantic']).default('keyword'),
   omniBackend: z.enum(['local', 'adapter']).default('local'),
   omniAdapterUrl: z.string().url().default('http://127.0.0.1:8081'),
+  itToolsUrl: z.string().url().default('http://127.0.0.1:8082'),
   allowedDirectories: z.array(z.string()).min(1),
   logLevel: z.enum(['debug', 'info', 'warn', 'error']).default('info'),
   logFile: z.string().default('logs/mcp-server.log'),
@@ -84,6 +85,7 @@ export function loadConfig(): Config {
     searchRankingMethod: env.SEARCH_RANKING_METHOD as 'keyword' | 'semantic' | undefined,
     omniBackend: env.OMNI_BACKEND as 'local' | 'adapter' | undefined,
     omniAdapterUrl: env.OMNI_ADAPTER_URL,
+    itToolsUrl: env.IT_TOOLS_URL,
     allowedDirectories: env.ALLOWED_DIRECTORIES !== undefined
       ? env.ALLOWED_DIRECTORIES
           .split(',')
