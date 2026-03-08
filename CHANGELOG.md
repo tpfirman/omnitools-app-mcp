@@ -7,11 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-03-08
+
 ### Added
 - Dispatcher tool architecture with `omni_search` and `omni_run`
 - Tool catalog MCP resource: `omnitools://catalog`
 - Core tool registry with ranked keyword search
-- 14 tools across text, data, file, document, and media categories
+- 16 tools across text, data, file, document, and media categories
 - FFmpeg/ffprobe media wrappers (metadata + audio extraction)
 - PDF document wrappers (text extraction + merge via system tools)
 - Unit tests for tool registry search and execution paths
