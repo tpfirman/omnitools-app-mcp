@@ -48,6 +48,9 @@ jobs:
       - name: Build
         run: npm run build
 
+      - name: Docker smoke test (adapter)
+        run: npm run test:docker
+
       - name: Package distribution
         run: |
           mkdir -p dist-release
