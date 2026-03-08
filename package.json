@@ -10,15 +10,17 @@
   "scripts": {
     "build": "tsc",
     "dev": "tsx src/index.ts",
+    "adapter:dev": "tsx src/adapter/index.ts",
     "start": "node dist/index.js",
+    "adapter:start": "node dist/adapter/index.js",
+    "benchmark:backends": "npm run build && node scripts/benchmark-backends.mjs",
     "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
+    "test:docker": "node tests/integration/docker-smoke.mjs",
     "test:watch": "node --experimental-vm-modules node_modules/jest/bin/jest.js --watch",
     "test:coverage": "node --experimental-vm-modules node_modules/jest/bin/jest.js --coverage",
     "lint": "eslint src/**/*.ts",
     "lint:fix": "eslint src/**/*.ts --fix",
-    "setup": "bash scripts/setup.sh",
-    "submodules:update": "bash scripts/update-submodules.sh",
-    "submodules:update:remote": "bash scripts/update-submodules.sh --remote"
+    "setup": "bash scripts/setup.sh"
   },
   "keywords": [
     "mcp",

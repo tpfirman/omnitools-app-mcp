@@ -24,11 +24,8 @@ A Model Context Protocol (MCP) server that provides AI agents access to self-hos
 
 ```bash
 # Clone the repository
-git clone --recurse-submodules <repository-url>
+git clone <repository-url>
 cd omnitools-app-mcp
-
-# If already cloned without submodules
-npm run submodules:update
 
 # Run automated setup
 npm run setup
@@ -61,6 +58,11 @@ MAX_FILE_SIZE=52428800  # 50 MB
 # Search configuration
 SEARCH_RESULT_LIMIT=10
 
+# Backend mode
+OMNI_BACKEND=local
+OMNI_ADAPTER_URL=http://127.0.0.1:8081
+IT_TOOLS_URL=http://127.0.0.1:8082
+
 # Security: whitelist allowed directories
 ALLOWED_DIRECTORIES=/tmp,/home/user/workspace
 
@@ -79,7 +81,19 @@ npm start
 npm run dev
 ```
 
-### 4. Add MCP Server to VS Code (User Scope)
+### 4. Run Docker Compose Topology
+
+```bash
+docker compose up --build
+```
+
+Services:
+- `omni-tools-ui`: official OmniTools UI at `http://localhost:8080`
+- `it-tools-ui`: official IT-Tools UI at `http://localhost:8082`
+- `omni-adapter`: adapter API at `http://localhost:8081` (`/health`, `/tools/search`, `/tools/run`)
+- `mcp-server`: MCP runtime configured with `OMNI_BACKEND=adapter`
+
+### 5. Add MCP Server to VS Code (User Scope)
 
 Use user-level MCP settings so no repository artifacts are created.
 
@@ -100,6 +114,9 @@ Use user-level MCP settings so no repository artifacts are created.
         "TOOL_TIMEOUT": "60",
         "MAX_FILE_SIZE": "52428800",
         "SEARCH_RESULT_LIMIT": "10",
+        "OMNI_BACKEND": "local",
+        "OMNI_ADAPTER_URL": "http://127.0.0.1:8081",
+        "IT_TOOLS_URL": "http://127.0.0.1:8082",
         "LOG_LEVEL": "info"
       }
     }
@@ -119,8 +136,9 @@ Quick verification:
 The server follows a modular architecture:
 
 1. **Transport Layer**: JSON-RPC over STDIO communication
-2. **Omni-Bridge**: Maps MCP requests to OmniTools functions
-3. **Utility Layer**: File I/O, FFmpeg, and system dependencies
+2. **Backend Router**: `OMNI_BACKEND=local|adapter` selects execution path
+3. **Adapter Boundary**: Optional HTTP adapter (`/health`, `/tools/search`, `/tools/run`)
+4. **Utility Layer**: File I/O, FFmpeg, and system dependencies
 
 ### Token Efficiency: The Dispatcher Pattern
 
@@ -141,6 +159,8 @@ omnitools-app-mcp/
 ├── src/
 │   ├── index.ts           # Entry point
 │   ├── server.ts          # MCP server implementation
+│   ├── adapter/           # Omni adapter service + contract schemas
+│   ├── backend/           # Backend providers (local + adapter)
 │   ├── config.ts          # Configuration management
 │   ├── tools/             # Tool wrappers
 │   └── utils/             # Utilities (logger, validation)
@@ -183,24 +203,22 @@ npm run lint:fix
 npm run build
 ```
 
-### Submodule Management
-
-This repository uses `omni-tools` as a git submodule in `src/lib/omni-tools`.
+### Benchmarking Backends
 
 ```bash
-# Initialize/sync/update to pinned commits
-npm run submodules:update
-
-# Move submodules to latest remote references
-npm run submodules:update:remote
+npm run benchmark:backends
 ```
+
+Notes:
+- Always measures local registry latency
+- Measures adapter latency only when `OMNI_ADAPTER_URL` is reachable
 
 ### CI and Branch Protection
 
 - GitHub Actions workflow: `.github/workflows/ci.yml`
 - CI runs on PRs to `main` and pushes to `dev`/`feature/**`
 - Required status check to protect `main`: `Lint, Test, Build (Node 20)`
-- Configure branch protection in GitHub: Settings -> Branches -> Add rule
+- Configure repository rulesets in GitHub: Settings -> Rules -> Rulesets
 
 ## Git Workflow
 
@@ -230,11 +248,7 @@ feature/*, bugfix/*, hotfix/* (working branches from main)
 
 3. **Open PR to `dev`** (not `main`) when feature is complete
 
-4. **Release process:** When ready, PR `dev` → `main`, then create version tag:
-   ```bash
-   git tag -a v1.0.0 -m "Release v1.0.0"
-   git push origin v1.0.0
-   ```
+4. **Release process:** Merge PR `dev` → `main`; `release.yml` publishes/updates the GitHub Release using `package.json` version and PR body notes.
 
 **For detailed workflow instructions, see [CONTRIBUTING.md](CONTRIBUTING.md)**
 
@@ -276,6 +290,9 @@ All environment variables with defaults:
 | `MAX_FILE_SIZE` | `52428800` | Maximum file size (bytes) |
 | `SEARCH_RESULT_LIMIT` | `10` | Number of search results |
 | `SEARCH_RANKING_METHOD` | `keyword` | Ranking algorithm |
+| `OMNI_BACKEND` | `local` | Tool backend mode (`local` or `adapter`) |
+| `OMNI_ADAPTER_URL` | `http://127.0.0.1:8081` | Adapter base URL for `adapter` mode |
+| `IT_TOOLS_URL` | `http://127.0.0.1:8082` | IT-Tools UI base URL for Docker topology and future provider integration |
 | `ALLOWED_DIRECTORIES` | `/tmp` | Comma-separated paths |
 | `LOG_LEVEL` | `info` | Log verbosity level |
 | `LOG_FILE` | `logs/mcp-server.log` | Log file path |
@@ -320,33 +337,31 @@ We welcome contributions! Please follow these guidelines:
 
 ## Releases
 
-Releases are automated via GitHub Actions and triggered by pushing semantic version tags:
+Releases are automated via GitHub Actions and triggered when changes are merged into `main`:
 
 1. **Development:** Feature branches → `dev` via PR
 2. **Release preparation:** `dev` → `main` via PR
-3. **Release trigger:** Push a version tag (e.g., `v1.0.0`) after merge to `main`
+3. **Version source:** `package.json` `version` field (semantic version)
 4. **GitHub Release:** Workflow builds, packages, and publishes artifacts automatically
+5. **Release notes:** Merged PR body with footer `For a full list of changes, see CHANGELOG.md`
 
 ### Creating a Semantic Version Release
 
 ```bash
-# After merging dev into main
-git checkout main
-git pull origin main
+# Before opening release PR, bump version in your branch
+npm version patch --no-git-tag-version
 
-# Create annotated tag
-git tag -a v1.0.0 -m "Release v1.0.0"
-
-# Push tag to trigger release workflow
-git push origin v1.0.0
+# Commit the version bump and changes, then open PR dev -> main
+# Merging that PR triggers release workflow automatically
 ```
 
 The release workflow (`.github/workflows/release.yml`) automatically:
 - ✅ Runs full test suite
 - ✅ Builds production bundle
-- ✅ Creates GitHub Release with notes
+- ✅ Creates/updates GitHub Release using `v<package.json version>`
+- ✅ Uses merged PR body as release notes
 - ✅ Attaches distribution artifacts (.tar.gz and .zip)
-- ✅ Updates `latest` tag (semantic tags only)
+- ✅ Updates `latest` tag for stable versions
 
 ## License
 
@@ -364,12 +379,10 @@ This project builds an MCP server layer around OmniTools to make those utilities
 - [OmniTools](https://omnitools.app/)
 - [OmniTools GitHub](https://github.com/iib0011/omni-tools)
 - [MCP Specification](https://modelcontextprotocol.io/)
-- [Project Plan](docs/plans/initial-plan.md)
-- [Publishing Workflow](docs/plans/complete/feature-publishing-workflow.md)
+- [Project Plan](docs/initial-plan.md)
 
 ## Support
 
 For issues and questions:
-- Check [`docs/ISSUES_LOG.md`](docs/ISSUES_LOG.md) for known issues
+- [Open a GitHub Issue](https://github.com/tpfirman/omnitools-app-mcp/issues) for bugs or feature requests
 - Review [`.instructions.md`](.instructions.md) for development guidelines
-- Open an issue on GitHub (once published)

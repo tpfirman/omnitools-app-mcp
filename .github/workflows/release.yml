@@ -2,54 +2,121 @@ name: Release
 
 on:
   push:
-    tags:
-      - 'v*.*.*'
+    branches:
+      - main
 
 permissions:
   contents: write
+  pull-requests: read
 
 jobs:
   release:
+    # Rulesets should block direct pushes; this workflow is intended for merged PRs landing on main.
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          submodules: recursive
 
-      - name: Prepare release metadata
+      - name: Compute semantic version metadata
         id: metadata
         run: |
-          TAG="${GITHUB_REF_NAME}"
-          NAME="${GITHUB_REF_NAME}"
-          if [[ "${GITHUB_REF_NAME}" == *"-"* ]]; then
+          set -euo pipefail
+
+          VERSION=$(node -e "console.log(require('./package.json').version)")
+          TAG="v${VERSION}"
+
+          if [[ "${VERSION}" == *"-"* ]]; then
             PRERELEASE=true
           else
             PRERELEASE=false
           fi
 
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
           echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
-          echo "name=${NAME}" >> "$GITHUB_OUTPUT"
+          echo "name=${TAG}" >> "$GITHUB_OUTPUT"
           echo "prerelease=${PRERELEASE}" >> "$GITHUB_OUTPUT"
 
+      - name: Decide whether to publish this version
+        id: should_release
+        run: |
+          set -euo pipefail
+
+          TAG="${{ steps.metadata.outputs.tag }}"
+
+          if git ls-remote --exit-code --tags origin "refs/tags/${TAG}" >/dev/null 2>&1; then
+            echo "should_release=false" >> "$GITHUB_OUTPUT"
+            echo "Version tag ${TAG} already exists. Skipping release publish steps."
+          else
+            echo "should_release=true" >> "$GITHUB_OUTPUT"
+            echo "Version tag ${TAG} does not exist yet. Proceeding with release publish steps."
+          fi
+
+      - name: Get merged pull request details
+        id: pr
+        if: ${{ steps.should_release.outputs.should_release == 'true' }}
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const commitSha = context.sha;
+            const { owner, repo } = context.repo;
+            const pullRequests = await github.rest.repos.listPullRequestsAssociatedWithCommit({
+              owner,
+              repo,
+              commit_sha: commitSha,
+              mediaType: {
+                previews: ['groot'],
+              },
+            });
+
+            const mergedPr = pullRequests.data.find((pr) => pr.merged_at) || pullRequests.data[0] || null;
+            core.setOutput('number', mergedPr ? String(mergedPr.number) : '');
+            core.setOutput('title', mergedPr?.title ?? 'Release');
+            core.setOutput('body', mergedPr?.body ?? '');
+
+      - name: Generate release notes body
+        if: ${{ steps.should_release.outputs.should_release == 'true' }}
+        uses: actions/github-script@v7
+        env:
+          PR_BODY: ${{ steps.pr.outputs.body }}
+        with:
+          script: |
+            const fs = require('node:fs');
+            const prBody = process.env.PR_BODY || '';
+            const body = prBody && prBody.trim().length > 0
+              ? `${prBody.trim()}\n\nFor a full list of changes, see CHANGELOG.md\n`
+              : 'Automated release from merge to main.\n\nFor a full list of changes, see CHANGELOG.md\n';
+            fs.writeFileSync('release_notes.md', body, 'utf8');
+
       - name: Setup Node.js
+        if: ${{ steps.should_release.outputs.should_release == 'true' }}
         uses: actions/setup-node@v4
         with:
           node-version: '20.x'
           cache: 'npm'
 
       - name: Install dependencies
+        if: ${{ steps.should_release.outputs.should_release == 'true' }}
         run: npm ci
 
       - name: Run tests
+        if: ${{ steps.should_release.outputs.should_release == 'true' }}
         run: npm test -- --runInBand
 
       - name: Build
+        if: ${{ steps.should_release.outputs.should_release == 'true' }}
         run: npm run build
 
+      - name: Docker smoke test (adapter)
+        if: ${{ steps.should_release.outputs.should_release == 'true' }}
+        run: npm run test:docker
+
       - name: Package distribution
+        if: ${{ steps.should_release.outputs.should_release == 'true' }}
         run: |
           mkdir -p dist-release
           cp -r dist/* dist-release/
@@ -61,50 +128,89 @@ jobs:
           cd dist-release
           npm ci --omit=dev
           cd ..
-          tar -czf omnitools-mcp-server-${{ steps.metadata.outputs.tag }}.tar.gz -C dist-release .
-          zip -r omnitools-mcp-server-${{ steps.metadata.outputs.tag }}.zip dist-release/
+          tar -czf omnitools-mcp-server-${{ steps.metadata.outputs.version }}.tar.gz -C dist-release .
+          zip -r omnitools-mcp-server-${{ steps.metadata.outputs.version }}.zip dist-release/
 
-      - name: Extract release notes
-        id: release_notes
-        run: |
-          # Extract version from semantic tag (e.g., v1.2.3 -> 1.2.3)
-          VERSION=${GITHUB_REF_NAME#v}
-          if [ -f CHANGELOG.md ]; then
-            NOTES=$(awk -v ver="$VERSION" '
-              $0 ~ "^## \\[?" ver "\\]?([[:space:]]|$)" { in_section=1; next }
-              in_section && /^## / { exit }
-              in_section { print }
-            ' CHANGELOG.md)
-            if [ -z "$NOTES" ]; then
-              NOTES="See [CHANGELOG.md](CHANGELOG.md) for details."
-            fi
-          else
-            NOTES="Release ${VERSION}"
-          fi
-          
-          # Save to file for GitHub release body
-          echo "$NOTES" > release_notes.md
-
-      - name: Create GitHub Release
-        uses: softprops/action-gh-release@v1
+      - name: Create or update GitHub Release
+        if: ${{ steps.should_release.outputs.should_release == 'true' }}
+        uses: actions/github-script@v7
         with:
-          tag_name: ${{ steps.metadata.outputs.tag }}
-          name: ${{ steps.metadata.outputs.name }}
-          target_commitish: ${{ github.sha }}
-          body_path: release_notes.md
-          files: |
-            omnitools-mcp-server-*.tar.gz
-            omnitools-mcp-server-*.zip
-          draft: false
-          prerelease: ${{ steps.metadata.outputs.prerelease == 'true' }}
-          generate_release_notes: true
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const fs = require('node:fs');
+            const { owner, repo } = context.repo;
+            const tag = '${{ steps.metadata.outputs.tag }}';
+            const name = '${{ steps.metadata.outputs.name }}';
+            const prerelease = '${{ steps.metadata.outputs.prerelease }}' === 'true';
+            const body = fs.readFileSync('release_notes.md', 'utf8');
+
+            const assets = fs.readdirSync(process.cwd())
+              .filter((file) => file.endsWith('.tar.gz') || file.endsWith('.zip'));
+
+            let release;
+            try {
+              const existing = await github.rest.repos.getReleaseByTag({ owner, repo, tag });
+              release = await github.rest.repos.updateRelease({
+                owner,
+                repo,
+                release_id: existing.data.id,
+                tag_name: tag,
+                name,
+                target_commitish: context.sha,
+                body,
+                draft: false,
+                prerelease,
+                make_latest: prerelease ? 'false' : 'true',
+              });
+            } catch (error) {
+              if (error.status !== 404) {
+                throw error;
+              }
+
+              release = await github.rest.repos.createRelease({
+                owner,
+                repo,
+                tag_name: tag,
+                name,
+                target_commitish: context.sha,
+                body,
+                draft: false,
+                prerelease,
+                make_latest: prerelease ? 'false' : 'true',
+              });
+            }
+
+            for (const assetName of assets) {
+              const assetPath = `${process.cwd()}/${assetName}`;
+              const data = fs.readFileSync(assetPath);
+              const stat = fs.statSync(assetPath);
+
+              const existingAssets = release.data.assets.filter((asset) => asset.name === assetName);
+              for (const existingAsset of existingAssets) {
+                await github.rest.repos.deleteReleaseAsset({
+                  owner,
+                  repo,
+                  asset_id: existingAsset.id,
+                });
+              }
+
+              await github.rest.repos.uploadReleaseAsset({
+                url: release.data.upload_url,
+                headers: {
+                  'content-type': assetName.endsWith('.zip') ? 'application/zip' : 'application/gzip',
+                  'content-length': stat.size,
+                },
+                name: assetName,
+                data,
+              });
+            }
 
       - name: Update latest tag
-        if: ${{ startsWith(github.ref_name, 'v') && !contains(github.ref_name, '-') }}
+        if: ${{ steps.should_release.outputs.should_release == 'true' && steps.metadata.outputs.prerelease != 'true' }}
         run: |
+          set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git tag -f latest
+          git tag -d latest || true
+          git tag -f latest "${{ github.sha }}"
           git push origin latest --force

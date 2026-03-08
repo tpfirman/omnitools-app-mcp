@@ -8,8 +8,10 @@ import {
 } from '@modelcontextprotocol/sdk/types.js';
 import type { Config } from './config.js';
 import type { Logger } from './utils/logger.js';
-import { ToolRegistry } from './tools/registry.js';
 import { buildCatalogResource } from './tools/catalog.js';
+import { LocalOmniBackend } from './backend/localBackend.js';
+import { AdapterOmniBackend } from './backend/adapterBackend.js';
+import type { OmniBackend } from './backend/types.js';
 
 /**
  * OmniTools MCP Server
@@ -18,12 +20,17 @@ export class OmniToolsServer {
   private server: Server;
   private config: Config;
   private logger: Logger;
-  private registry: ToolRegistry;
+  private backend: OmniBackend;
+  private localCatalogBackend: LocalOmniBackend;
 
   constructor(config: Config, logger: Logger) {
     this.config = config;
     this.logger = logger;
-    this.registry = new ToolRegistry();
+    this.localCatalogBackend = new LocalOmniBackend(config, logger);
+    this.backend =
+      config.omniBackend === 'adapter'
+        ? new AdapterOmniBackend(config, logger)
+        : this.localCatalogBackend;
 
     this.server = new Server(
       {
@@ -62,12 +69,13 @@ export class OmniToolsServer {
           },
           {
             name: 'omni_run',
-            description: 'Run a specific OmniTools capability by tool name and arguments',
+            description: 'Run a specific OmniTools capability by tool name and args (arguments alias supported)',
             inputSchema: {
               type: 'object',
               properties: {
                 toolName: { type: 'string', description: 'Tool to execute' },
-                args: { type: 'object', description: 'Tool arguments' },
+                args: { type: 'object', description: 'Tool arguments (canonical)' },
+                arguments: { type: 'object', description: 'Alias for args for compatibility' },
               },
               required: ['toolName'],
             },
@@ -103,8 +111,14 @@ export class OmniToolsServer {
       }
 
       if (name === 'omni_search') {
+        const start = Date.now();
         try {
-          const results = this.registry.search(args ?? {}, this.config.searchResultLimit);
+          const results = await this.backend.search(args ?? {}, this.config.searchResultLimit);
+          this.logger.info('omni_search completed', {
+            backend: this.config.omniBackend,
+            durationMs: Date.now() - start,
+            count: results.length,
+          });
           return {
             content: [
               {
@@ -131,13 +145,22 @@ export class OmniToolsServer {
               },
             ],
           };
+        } finally {
+          this.logger.debug('omni_search request finished', {
+            backend: this.config.omniBackend,
+            durationMs: Date.now() - start,
+          });
         }
       }
 
       if (name === 'omni_run') {
-        const result = await this.registry.run(args ?? {}, {
-          config: this.config,
-          logger: this.logger,
+        const start = Date.now();
+        const result = await this.backend.run(args ?? {});
+        this.logger.info('omni_run completed', {
+          backend: this.config.omniBackend,
+          durationMs: Date.now() - start,
+          success: result.success,
+          message: result.message,
         });
 
         return {
@@ -195,6 +218,9 @@ export class OmniToolsServer {
                   maxFileSize: this.config.maxFileSize,
                   searchResultLimit: this.config.searchResultLimit,
                   searchRankingMethod: this.config.searchRankingMethod,
+                  omniBackend: this.config.omniBackend,
+                  omniAdapterUrl: this.config.omniAdapterUrl,
+                  itToolsUrl: this.config.itToolsUrl,
                   allowedDirectories: this.config.allowedDirectories,
                   logLevel: this.config.logLevel,
                 },
@@ -212,7 +238,7 @@ export class OmniToolsServer {
             {
               uri,
               mimeType: 'application/json',
-              text: buildCatalogResource(this.registry),
+              text: buildCatalogResource(this.localCatalogBackend.getCatalog(), this.config.omniBackend),
             },
           ],
         };
@@ -231,7 +257,10 @@ export class OmniToolsServer {
   }
   
   async start(): Promise<void> {
-    this.logger.info('Starting OmniTools MCP Server...');
+    this.logger.info('Starting OmniTools MCP Server...', {
+      backend: this.config.omniBackend,
+      adapterUrl: this.config.omniAdapterUrl,
+    });
     
     const transport = new StdioServerTransport();
     await this.server.connect(transport);

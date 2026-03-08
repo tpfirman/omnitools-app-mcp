@@ -229,12 +229,9 @@ See **Branch Protection Setup** section below for instructions.
 ### Initial Clone
 
 ```bash
-# Clone with submodules
-git clone --recurse-submodules https://github.com/tpfirman/omnitools-app-mcp.git
+# Clone repository
+git clone https://github.com/tpfirman/omnitools-app-mcp.git
 cd omnitools-app-mcp
-
-# Or if already cloned
-git submodule update --init --recursive
 
 # Install dependencies
 npm install
@@ -249,15 +246,17 @@ npm test
 npm run build
 ```
 
-### Keeping Submodules Updated
+### Optional: Run Docker Topology
 
 ```bash
-# Update to pinned commits
-npm run submodules:update
-
-# Update to latest remote versions
-npm run submodules:update:remote
+docker compose up --build
 ```
+
+Expected services:
+- `omni-tools-ui` on `http://localhost:8080`
+- `it-tools-ui` on `http://localhost:8082`
+- `omni-adapter` on `http://localhost:8081`
+- `mcp-server` (STDIO runtime container)
 
 ## CI/CD Pipeline
 
@@ -267,7 +266,7 @@ Our CI/CD runs on:
 
 ### CI Workflow Stages
 
-1. **Checkout** - Fetch code with submodules
+1. **Checkout** - Fetch repository code
 2. **Setup** - Install Node.js 20 and dependencies
 3. **Lint** - Run ESLint checks
 4. **Test** - Run Jest test suite
@@ -275,12 +274,15 @@ Our CI/CD runs on:
 
 ### Release Workflow
 
-Triggered on version tags (`v*.*.*`):
+Triggered on pushes to `main` (after merges):
 
 1. **Build** - Compile production bundle
 2. **Test** - Run full test suite
 3. **Package** - Create distribution artifacts
-4. **Release** - Generate release notes and publish
+4. **Release** - Create or update GitHub Release with:
+  - Version sourced from `package.json`
+  - Release notes sourced from merged PR body
+  - Footer: `For a full list of changes, see CHANGELOG.md`
 
 ## Getting Help
 
@@ -299,12 +301,12 @@ Triggered on version tags (`v*.*.*`):
 
 ## Branch Protection Setup
 
-Since GitHub MCP tools don't currently support branch protection API, these must be configured manually via GitHub UI:
+Since GitHub MCP tools don't currently support repository ruleset management, these must be configured manually via GitHub UI:
 
 ### Protecting `main` Branch
 
-1. Go to **Settings** → **Branches**
-2. Click **Add rule** or edit existing rule for `main`
+1. Go to **Settings** → **Rules** → **Rulesets**
+2. Create or edit a ruleset targeting `main`
 3. Configure:
    - **Branch name pattern:** `main`
    - ✅ **Require a pull request before merging**
@@ -315,18 +317,18 @@ Since GitHub MCP tools don't currently support branch protection API, these must
      - Status checks: `Lint, Test, Build (Node 20)`
    - ✅ **Do not allow bypassing the above settings**
    - ✅ **Restrict who can push to matching branches** (optional - maintainers only)
-4. Click **Create** or **Save changes**
+4. Save and enable the ruleset
 
 ### Protecting `dev` Branch
 
-1. Go to **Settings** → **Branches**
-2. Click **Add rule** for `dev`
+1. Go to **Settings** → **Rules** → **Rulesets**
+2. Create or edit a ruleset targeting `dev`
 3. Configure:
    - **Branch name pattern:** `dev`
    - ✅ **Require status checks to pass before merging**
      - Status checks: `Lint, Test, Build (Node 20)`
    - ✅ **Require linear history** (optional - prevents merge commits)
-4. Click **Create**
+4. Save and enable the ruleset
 
 ### Verifying Protection Rules
 
@@ -335,7 +337,7 @@ Since GitHub MCP tools don't currently support branch protection API, these must
 gh api repos/tpfirman/omnitools-app-mcp/branches/main/protection
 
 # Or visit:
-# https://github.com/tpfirman/omnitools-app-mcp/settings/branches
+# https://github.com/tpfirman/omnitools-app-mcp/settings/rules
 ```
 
 ---

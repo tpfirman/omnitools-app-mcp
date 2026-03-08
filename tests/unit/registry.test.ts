@@ -8,6 +8,9 @@ const config: Config = {
   maxFileSize: 1024 * 1024,
   searchResultLimit: 10,
   searchRankingMethod: 'keyword',
+  omniBackend: 'local',
+  omniAdapterUrl: 'http://127.0.0.1:8081',
+  itToolsUrl: 'http://127.0.0.1:8082',
   allowedDirectories: ['/tmp'],
   logLevel: 'error',
   logFile: 'logs/test.log',
@@ -37,6 +40,33 @@ describe('ToolRegistry', () => {
     expect(result.success).toBe(true);
     expect(result.message).toContain('lowercase');
     expect((result.data as { result: string }).result).toBe('hello world');
+  });
+
+  it('accepts arguments alias for tool input', async () => {
+    const result = await registry.run(
+      {
+        toolName: 'text_uppercase',
+        arguments: { text: 'hello world' },
+      },
+      { config, logger }
+    );
+
+    expect(result.success).toBe(true);
+    expect((result.data as { result: string }).result).toBe('HELLO WORLD');
+  });
+
+  it('prefers args over arguments when both are present', async () => {
+    const result = await registry.run(
+      {
+        toolName: 'text_lowercase',
+        args: { text: 'FROM ARGS' },
+        arguments: { text: 'FROM ARGUMENTS' },
+      },
+      { config, logger }
+    );
+
+    expect(result.success).toBe(true);
+    expect((result.data as { result: string }).result).toBe('from args');
   });
 
   it('returns helpful error for unknown tool', async () => {
