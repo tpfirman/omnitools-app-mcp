@@ -102,7 +102,7 @@ See CONTRIBUTING.md for detailed setup instructions.
 - `.github/workflows/release.yml` (new)
 - `CONTRIBUTING.md` (new)
 - `README.md` (updated)
-- `docs/plans/features/feature-publishing-workflow.md` (this file)
+- `docs/plans/complete/feature-publishing-workflow.md` (this file)
 
 ## Next Steps
 

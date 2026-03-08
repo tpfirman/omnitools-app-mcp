@@ -348,23 +348,14 @@ We welcome contributions! Please follow these guidelines:
 
 ## Releases
 
-Releases are automated via GitHub Actions:
+Releases are automated via GitHub Actions and triggered by pushing semantic version tags:
 
 1. **Development:** Feature branches → `dev` via PR
 2. **Release preparation:** `dev` → `main` via PR
-3. **Auto release on merge:** Merging a PR into `main` creates a GitHub Release automatically
-4. **Optional semantic release:** Push a version tag (e.g., `v1.0.0`) for a semver-named release
+3. **Release trigger:** Push a version tag (e.g., `v1.0.0`) after merge to `main`
+4. **GitHub Release:** Workflow builds, packages, and publishes artifacts automatically
 
-### Creating a Release Automatically
-
-No manual step is required beyond merging a PR into `main`.
-
-When a PR into `main` is merged, `.github/workflows/release.yml` will:
-- Build and test
-- Package artifacts
-- Create a GitHub Release for the merge commit
-
-### Creating a Semantic Version Release (Optional)
+### Creating a Semantic Version Release
 
 ```bash
 # After merging dev into main
@@ -402,7 +393,7 @@ This project builds an MCP server layer around OmniTools to make those utilities
 - [OmniTools GitHub](https://github.com/iib0011/omni-tools)
 - [MCP Specification](https://modelcontextprotocol.io/)
 - [Project Plan](docs/plans/initial-plan.md)
-- [Publishing Workflow Idea](docs/plans/features/feature-publishing-workflow.md)
+- [Publishing Workflow Idea](docs/plans/complete/feature-publishing-workflow.md)
 
 ## Support
 
