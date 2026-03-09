@@ -25,6 +25,11 @@ export class ToolRegistry {
     this.toolProvider = new Map();
     for (const provider of providers) {
       for (const tool of provider.getTools()) {
+        if (this.tools.has(tool.name)) {
+          throw new Error(
+            `Duplicate tool name '${tool.name}' from provider '${provider.id}' conflicts with an existing registration`
+          );
+        }
         this.tools.set(tool.name, tool);
         this.toolProvider.set(tool.name, provider.id);
       }

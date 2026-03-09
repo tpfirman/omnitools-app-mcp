@@ -21,10 +21,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `.claude/settings.json` project-level shared Claude Code permission defaults
 
 ### Updated
-- `ToolRegistry` now accepts `ToolProvider[]` instead of hard-coded module imports
+- `ToolRegistry` now accepts `ToolProvider[]` instead of hard-coded module imports; throws
+  on duplicate tool name registration to make provider conflicts explicit
+- `ittools_base64_decode` now validates Base64 format (charset, padding, round-trip) before
+  decoding — `Buffer.from(x, 'base64')` does not throw on invalid input
 - `omnitools://catalog` resource now includes `providers` array and `provider` per tool
 - `README.md` updated to reflect 26 tools across two providers
 - `package.json` version bumped `0.1.0` → `0.2.0` to match existing CHANGELOG entry
+- Unit test suite expanded to 49 tests; added `tests/unit/ittools.test.ts` covering all
+  10 IT-Tools implementations including round-trips and failure cases
 
 ### Removed
 - `.instructions.md` — replaced by `CLAUDE.md`

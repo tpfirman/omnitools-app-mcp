@@ -43,12 +43,17 @@ const itToolsList: ToolDefinition[] = [
     schema: base64DecodeSchema,
     execute: async (input) => {
       const { encoded } = base64DecodeSchema.parse(input);
-      try {
-        const decoded = Buffer.from(encoded, 'base64').toString('utf8');
-        return { success: true, message: 'Base64 decoded', data: { decoded } };
-      } catch {
+      const normalised = encoded.replace(/\s/g, '');
+      const base64Regex = /^[A-Za-z0-9+/]*={0,2}$/;
+      if (normalised.length === 0 || normalised.length % 4 !== 0 || !base64Regex.test(normalised)) {
         return { success: false, message: 'Invalid Base64 input' };
       }
+      const buffer = Buffer.from(normalised, 'base64');
+      const reencoded = buffer.toString('base64');
+      if (reencoded.replace(/=+$/, '') !== normalised.replace(/=+$/, '')) {
+        return { success: false, message: 'Invalid Base64 input' };
+      }
+      return { success: true, message: 'Base64 decoded', data: { decoded: buffer.toString('utf8') } };
     },
   },
 
