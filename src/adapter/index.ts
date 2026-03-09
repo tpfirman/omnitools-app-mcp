@@ -4,6 +4,8 @@ import { createServer, type IncomingMessage, type ServerResponse } from 'node:ht
 import { loadConfig } from '../config.js';
 import { Logger } from '../utils/logger.js';
 import { ToolRegistry } from '../tools/registry.js';
+import { itToolsProvider } from '../tools/providers/ittools.js';
+import { omniToolsProvider } from '../tools/providers/omnitools.js';
 import {
   ADAPTER_VERSION,
   runRequestSchema,
@@ -13,7 +15,7 @@ import {
 async function main() {
   const config = loadConfig();
   const logger = new Logger(config);
-  const registry = new ToolRegistry();
+  const registry = new ToolRegistry([omniToolsProvider, itToolsProvider]);
   const port = parseInt(process.env.OMNI_ADAPTER_PORT ?? '8081', 10);
   const host = process.env.OMNI_ADAPTER_HOST ?? '0.0.0.0';
 

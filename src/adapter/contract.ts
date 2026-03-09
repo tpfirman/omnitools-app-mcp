@@ -13,6 +13,7 @@ export const searchResultSchema: z.ZodType<SearchResult> = z.object({
   name: z.string(),
   description: z.string(),
   category: z.string(),
+  provider: z.string(),
   tags: z.array(z.string()),
   score: z.number(),
 });

@@ -1,10 +1,5 @@
 import { z } from 'zod';
-import { dataTools } from './data.js';
-import { documentTools } from './document.js';
-import { fileTools } from './file.js';
-import { mediaTools } from './media.js';
-import { textTools } from './text.js';
-import type { SearchResult, ToolContext, ToolDefinition, ToolResult } from './types.js';
+import type { SearchResult, ToolContext, ToolDefinition, ToolProvider, ToolResult } from './types.js';
 
 const searchSchema = z.object({
   query: z.string().min(1),
@@ -23,10 +18,17 @@ const runSchema = z.object({
 
 export class ToolRegistry {
   private readonly tools: Map<string, ToolDefinition>;
+  private readonly toolProvider: Map<string, string>;
 
-  constructor() {
-    const allTools = [...textTools, ...dataTools, ...documentTools, ...fileTools, ...mediaTools];
-    this.tools = new Map(allTools.map((tool) => [tool.name, tool]));
+  constructor(providers: ToolProvider[]) {
+    this.tools = new Map();
+    this.toolProvider = new Map();
+    for (const provider of providers) {
+      for (const tool of provider.getTools()) {
+        this.tools.set(tool.name, tool);
+        this.toolProvider.set(tool.name, provider.id);
+      }
+    }
   }
 
   listTools(): ToolDefinition[] {
@@ -38,6 +40,7 @@ export class ToolRegistry {
       name: tool.name,
       description: tool.description,
       category: tool.category,
+      provider: this.toolProvider.get(tool.name) ?? 'unknown',
       tags: tool.tags,
       inputSchema: zodSchemaToJson(tool.schema),
     }));
@@ -78,6 +81,7 @@ export class ToolRegistry {
           name: tool.name,
           description: tool.description,
           category: tool.category,
+          provider: this.toolProvider.get(tool.name) ?? 'unknown',
           tags: tool.tags,
           score,
         };
