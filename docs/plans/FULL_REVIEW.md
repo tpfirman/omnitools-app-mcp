@@ -119,6 +119,37 @@ The git submodule (`src/lib/omni-tools`) was eliminated in the transition to the
 
 ---
 
+---
+
+## Technical Work Completed (Post-Review)
+
+Following the review findings, the technical gaps identified in Req 3–5 were addressed:
+
+### ToolProvider Architecture
+- Added `ToolProvider` interface to `src/tools/types.ts`
+- `ToolRegistry` now accepts `ToolProvider[]` — adding a new toolset requires no changes to existing code
+- `SearchResult` and `omnitools://catalog` now include a `provider` field identifying the source toolset
+
+### IT-Tools Provider
+- Created `src/tools/providers/ittools.ts` with 10 tools (zero new dependencies — Node.js built-ins only):
+  - `ittools_base64_encode` / `ittools_base64_decode`
+  - `ittools_url_encode` / `ittools_url_decode`
+  - `ittools_html_entities_encode` / `ittools_html_entities_decode`
+  - `ittools_uuid_generate`
+  - `ittools_jwt_decode`
+  - `ittools_hmac_generate`
+  - `ittools_number_base_convert`
+- `IT_TOOLS_URL` was already configured but unused — this fulfils the intent
+
+### OmniTools Provider
+- Existing 16 tools wrapped as `src/tools/providers/omnitools.ts` — no behaviour change
+
+### Test Coverage
+- Updated three test fixtures to include `provider` field in mock search results
+- All 27 tests passing
+
+---
+
 ## Remaining Work
 
 - **Phase 5: Client Validation** — End-to-end validation with Claude Desktop, LM Studio, GitHub Copilot, and other MCP clients. Broader regression coverage for external integrations.

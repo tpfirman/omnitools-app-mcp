@@ -6,7 +6,8 @@ A Model Context Protocol (MCP) server that provides AI agents access to self-hos
 
 - **Dynamic Tool Discovery**: Search-based tool discovery instead of loading 100+ schemas
 - **Dispatcher Runtime**: `omni_search` + `omni_run` for low-token tool invocation
-- **Core Tool Set (16 tools)**: Text, data, file, media, and PDF document operations
+- **26 Tools across Two Providers**: OmniTools (text, data, file, media, document) + IT-Tools (encoding, crypto, web utilities)
+- **Extensible Provider Architecture**: Add new toolsets by implementing `ToolProvider` — no core changes needed
 - **Token Optimization**: Specialized catalog resources keep prompt windows lean
 - **Multiple Platform Support**: Compatible with Claude Desktop, GitHub Copilot, Google Gemini, LM Studio, Relevance AI, and N8N
 - **Security First**: Whitelist-based file access and path sanitization
@@ -161,9 +162,11 @@ omnitools-app-mcp/
 │   ├── index.ts           # Entry point
 │   ├── server.ts          # MCP server implementation
 │   ├── adapter/           # Omni adapter service + contract schemas
-│   ├── backend/           # Backend providers (local + adapter)
+│   ├── backend/           # Backend routing (local vs adapter)
 │   ├── config.ts          # Configuration management
-│   ├── tools/             # Tool wrappers
+│   ├── tools/
+│   │   ├── providers/     # ToolProvider implementations (omnitools, ittools, …)
+│   │   └── …              # Tool implementations and registry
 │   └── utils/             # Utilities (logger, validation)
 ├── tests/
 │   ├── unit/              # Unit tests
@@ -264,7 +267,7 @@ feature/*, bugfix/*, hotfix/* (working branches from main)
   - Logging system and setup automation script
 
 - ✅ **Phase 2: Core Porting**
-  - 16 tools implemented across text, data, file, media, and document categories
+  - 16 OmniTools-inspired tools across text, data, file, media, and document categories
   - Includes CSV-to-JSON, JSON utilities, hashing, file IO, and PDF operations
 
 - ✅ **Phase 3: Media Integration**
@@ -274,6 +277,11 @@ feature/*, bugfix/*, hotfix/* (working branches from main)
   - `omni_search` tool with ranked keyword matching
   - `omni_run` tool with schema-validated execution
   - `omnitools://catalog` MCP resource for tool discovery
+
+- ✅ **IT-Tools Provider**
+  - 10 IT-Tools-inspired tools: Base64, URL encode/decode, HTML entities, UUID, JWT decode, HMAC, number base conversion
+  - Extensible `ToolProvider` architecture — add new toolsets without touching the core registry
+  - All tools advertised in catalog with `provider` field for easy identification
 
 ### Remaining
 
