@@ -171,7 +171,7 @@ omnitools-app-mcp/
 ├── scripts/               # Setup and build scripts
 ├── docs/                  # Documentation
 │   └── examples/          # Usage examples
-└── .instructions.md       # AI agent guidelines
+└── CLAUDE.md              # Claude Code project instructions
 ```
 
 ### Running Tests
@@ -386,4 +386,4 @@ This project builds an MCP server layer around OmniTools to make those utilities
 
 For issues and questions:
 - [Open a GitHub Issue](https://github.com/tpfirman/omnitools-app-mcp/issues) for bugs or feature requests
-- Review [`.instructions.md`](.instructions.md) for development guidelines
+- Review [`CLAUDE.md`](CLAUDE.md) for development guidelines
