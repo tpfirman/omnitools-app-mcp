@@ -381,14 +381,9 @@ This project is licensed under the MIT License. See `LICENSE`.
 - `omni-tools` by `iib0011`: https://github.com/iib0011/omni-tools
 - OmniTools website: https://omnitools.app/
 
-This project builds an MCP server layer around OmniTools to make those utilities accessible to AI agents.
+- `it-tools` by `CorentinTh` https://github.com/CorentinTh/it-tools
+- IT -Tools website: https://it-tools.tech/
 
-## Links
-
-- [OmniTools](https://omnitools.app/)
-- [OmniTools GitHub](https://github.com/iib0011/omni-tools)
-- [MCP Specification](https://modelcontextprotocol.io/)
-- [Project Plan](docs/initial-plan.md)
 
 ## Support
 
