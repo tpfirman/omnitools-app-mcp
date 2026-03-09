@@ -1,5 +1,7 @@
 import { describe, expect, it } from '@jest/globals';
 import { ToolRegistry } from '../../src/tools/registry';
+import { omniToolsProvider } from '../../src/tools/providers/omnitools';
+import { itToolsProvider } from '../../src/tools/providers/ittools';
 import type { Config } from '../../src/config';
 import { Logger } from '../../src/utils/logger';
 
@@ -19,7 +21,7 @@ const config: Config = {
 };
 
 describe('ToolRegistry', () => {
-  const registry = new ToolRegistry();
+  const registry = new ToolRegistry([omniToolsProvider, itToolsProvider]);
   const logger = new Logger(config);
 
   it('finds text tools via omni_search behavior', () => {

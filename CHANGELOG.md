@@ -7,6 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- `ToolProvider` interface (`src/tools/types.ts`) enabling new toolsets to be added
+  without modifying the core registry
+- IT-Tools provider (`src/tools/providers/ittools.ts`) — 10 new tools: `ittools_base64_encode`,
+  `ittools_base64_decode`, `ittools_url_encode`, `ittools_url_decode`,
+  `ittools_html_entities_encode`, `ittools_html_entities_decode`, `ittools_uuid_generate`,
+  `ittools_jwt_decode`, `ittools_hmac_generate`, `ittools_number_base_convert`
+- OmniTools provider (`src/tools/providers/omnitools.ts`) wrapping existing 16 tools
+- `provider` field on `SearchResult` and catalog entries — search results now identify
+  which toolset each tool belongs to
+- `CLAUDE.md` project-level Claude Code instructions file
+- `.claude/settings.json` project-level shared Claude Code permission defaults
+
+### Updated
+- `ToolRegistry` now accepts `ToolProvider[]` instead of hard-coded module imports
+- `omnitools://catalog` resource now includes `providers` array and `provider` per tool
+- `README.md` updated to reflect 26 tools across two providers
+- `package.json` version bumped `0.1.0` → `0.2.0` to match existing CHANGELOG entry
+
+### Removed
+- `.instructions.md` — replaced by `CLAUDE.md`
+
 ## [0.2.0] - 2026-03-08
 
 ### Added

@@ -26,6 +26,13 @@ export interface SearchResult {
   name: string;
   description: string;
   category: string;
+  provider: string;
   tags: string[];
   score: number;
+}
+
+export interface ToolProvider {
+  readonly id: string;
+  readonly name: string;
+  getTools(): ToolDefinition[];
 }

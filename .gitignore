@@ -28,6 +28,9 @@ Thumbs.db
 # IDE
 .vscode/
 .idea/
+
+# Claude Code personal settings (project settings.json is tracked)
+.claude/settings.local.json
 *.sublime-project
 *.sublime-workspace
 

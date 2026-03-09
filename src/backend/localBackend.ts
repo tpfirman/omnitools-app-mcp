@@ -1,8 +1,12 @@
 import type { Config } from '../config.js';
 import type { Logger } from '../utils/logger.js';
 import { ToolRegistry } from '../tools/registry.js';
-import type { SearchResult, ToolResult } from '../tools/types.js';
+import { itToolsProvider } from '../tools/providers/ittools.js';
+import { omniToolsProvider } from '../tools/providers/omnitools.js';
+import type { SearchResult, ToolProvider, ToolResult } from '../tools/types.js';
 import type { OmniBackend } from './types.js';
+
+const defaultProviders: ToolProvider[] = [omniToolsProvider, itToolsProvider];
 
 export class LocalOmniBackend implements OmniBackend {
   readonly mode = 'local' as const;
@@ -11,7 +15,7 @@ export class LocalOmniBackend implements OmniBackend {
   private readonly logger: Logger;
 
   constructor(config: Config, logger: Logger, registry?: ToolRegistry) {
-    this.registry = registry ?? new ToolRegistry();
+    this.registry = registry ?? new ToolRegistry(defaultProviders);
     this.config = config;
     this.logger = logger;
   }
