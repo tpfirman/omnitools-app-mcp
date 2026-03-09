@@ -76,6 +76,7 @@ describe('adapter contract schemas', () => {
           name: 'text_uppercase',
           description: 'Convert to uppercase',
           category: 'text',
+          provider: 'omnitools',
           tags: ['text', 'uppercase'],
           score: 12,
         },

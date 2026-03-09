@@ -1,6 +1,12 @@
 # Project Plan: OmniTools MCP Server
 
-> **Note:** This is the original planning document from project inception. The implementation may differ from what is described here. For current architecture and usage, refer to [README.md](../README.md).
+> **ARCHIVED** — This is the original project plan from inception (2026-03-07).
+> Phases 1–4 are complete. The architecture has evolved significantly: the git
+> submodule (`src/lib/omni-tools`) was replaced by a Docker adapter backend
+> (`src/adapter/`). IT-Tools was added as a second provider. All references to
+> submodule management in this document are obsolete.
+>
+> **Current state:** See [README.md](../README.md) for architecture and [docs/plans/FULL_REVIEW.md](plans/FULL_REVIEW.md) for the full history of what changed.
 
 ## 1. Project Overview
 This project aims to an MCP server to allow AI agents access to the self hosted "omnitools.app" package.

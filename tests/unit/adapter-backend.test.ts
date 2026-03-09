@@ -35,6 +35,7 @@ describe('AdapterOmniBackend', () => {
                 name: 'text_uppercase',
                 description: 'Convert text to uppercase',
                 category: 'text',
+                provider: 'omnitools',
                 tags: ['text', 'uppercase'],
                 score: 10,
               },
